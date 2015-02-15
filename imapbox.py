@@ -10,6 +10,7 @@ import re
 import os
 import json
 import io
+import mimetypes
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -121,6 +122,33 @@ def createRawFile(directory, data):
     f.close()
 
 
+def extractAttachments(directory, msg):
+    counter = 1
+
+    attdir = os.path.join(directory, 'attachments')
+
+    for part in msg.walk():
+        # multipart/* are just containers
+        if part.get_content_maintype() == 'multipart':
+            continue
+
+        if not os.path.exists(attdir):
+            os.makedirs(attdir)
+
+        # Applications should really sanitize the given filename so that an
+        # email message can't be used to overwrite important files
+        filename = part.get_filename()
+        if not filename:
+            ext = mimetypes.guess_extension(part.get_content_type())
+            if not ext:
+                # Use a generic bag-of-bits extension
+                ext = '.bin'
+            filename = 'part-%03d%s' % (counter, ext)
+        counter += 1
+        with open(os.path.join(attdir, filename), 'wb') as fp:
+            fp.write(part.get_payload(decode=True))
+
+
 def saveEmail(data, local_folder):
     for response_part in data:
         if isinstance(response_part, tuple):
@@ -131,7 +159,7 @@ def saveEmail(data, local_folder):
 
             createRawFile(directory, data[0][1])
             createMetaFile(directory, msg)
-
+            extractAttachments(directory, msg)
 
 
 def main():
@@ -140,7 +168,7 @@ def main():
     argparser.add_argument('-u', dest='username', help="IMAP username", required=True)
     argparser.add_argument('-p', dest='password', help="IMAP password", required=True)
     argparser.add_argument('-r', dest='remote_folder', help="Remote folder to download", default='INBOX')
-    argparser.add_argument('-l', dest='local_folder', help="Local folder where to save .eml files", default='.')
+    argparser.add_argument('-l', dest='local_folder', help="Local folder where to create the email folders", default='.')
     args = argparser.parse_args()
 
     mailbox = imaplib.IMAP4_SSL(args.host)
