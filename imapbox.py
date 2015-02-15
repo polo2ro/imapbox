@@ -11,6 +11,7 @@ import os
 import json
 import io
 import mimetypes
+import hashlib
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -101,12 +102,12 @@ def createMetaFile(directory, msg):
         json_file.close()
 
 
-def getEmailFolder(local_folder, msg):
+def getEmailFolder(local_folder, msg, data):
     if not msg['Message-Id']:
-        print 'No Message-Id for %s' %(msg['Subject'])
-        return None
+        foldername = hashlib.sha224(data).hexdigest()
+    else:
+        foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
 
-    foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
     directory = '%s/%s' %(local_folder, foldername)
 
     if not os.path.exists(directory):
@@ -125,6 +126,7 @@ def createRawFile(directory, data):
 def extractAttachments(directory, msg):
     counter = 1
 
+    keepcharacters = (' ','.','_')
     attdir = os.path.join(directory, 'attachments')
 
     for part in msg.walk():
@@ -145,6 +147,9 @@ def extractAttachments(directory, msg):
                 ext = '.bin'
             filename = 'part-%03d%s' % (counter, ext)
         counter += 1
+
+        "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
+
         with open(os.path.join(attdir, filename), 'wb') as fp:
             fp.write(part.get_payload(decode=True))
 
@@ -153,7 +158,7 @@ def saveEmail(data, local_folder):
     for response_part in data:
         if isinstance(response_part, tuple):
             msg = email.message_from_string(response_part[1])
-            directory = getEmailFolder(local_folder, msg)
+            directory = getEmailFolder(local_folder, msg, data[0][1])
             if not directory:
                 continue
 
