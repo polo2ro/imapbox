@@ -12,6 +12,7 @@ import json
 import io
 import mimetypes
 import hashlib
+import chardet
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -119,12 +120,27 @@ def getEmailFolder(local_folder, msg, data):
 def createRawFile(directory, data):
     f = open('%s/raw.eml' %(directory), 'w')
     print >> f, data
-
     f.close()
+
+
+def createMessageFile(directory, part, filename):
+
+    if part.get_content_charset() is None:
+        charset = chardet.detect(str(part))['encoding']
+    else:
+        charset = part.get_content_charset()
+
+    raw_content = part.get_payload(decode=True)
+    utf8_content = unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
+
+    with open(os.path.join(directory, filename), 'wb') as fp:
+        fp.write(utf8_content)
 
 
 def extractAttachments(directory, msg):
     counter = 1
+    text = None
+    html = None
 
     keepcharacters = (' ','.','_')
     attdir = os.path.join(directory, 'attachments')
@@ -134,13 +150,19 @@ def extractAttachments(directory, msg):
         if part.get_content_maintype() == 'multipart':
             continue
 
-        if not os.path.exists(attdir):
-            os.makedirs(attdir)
-
         # Applications should really sanitize the given filename so that an
         # email message can't be used to overwrite important files
         filename = part.get_filename()
         if not filename:
+
+            if part.get_content_type() == 'text/plain':
+                createMessageFile(directory, part, 'message.txt')
+                continue
+
+            if part.get_content_type() == 'text/html':
+                createMessageFile(directory, part, 'message.html')
+                continue
+
             ext = mimetypes.guess_extension(part.get_content_type())
             if not ext:
                 # Use a generic bag-of-bits extension
@@ -149,6 +171,9 @@ def extractAttachments(directory, msg):
         counter += 1
 
         "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
+
+        if not os.path.exists(attdir):
+            os.makedirs(attdir)
 
         with open(os.path.join(attdir, filename), 'wb') as fp:
             fp.write(part.get_payload(decode=True))
