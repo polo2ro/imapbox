@@ -13,6 +13,7 @@ import io
 import mimetypes
 import hashlib
 import chardet
+import gzip
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -118,8 +119,8 @@ def getEmailFolder(local_folder, msg, data):
 
 
 def createRawFile(directory, data):
-    f = open('%s/raw.eml' %(directory), 'w')
-    print >> f, data
+    f = gzip.open('%s/raw.eml.gz' %(directory), 'wb')
+    f.write(data)
     f.close()
 
 
@@ -132,6 +133,21 @@ def createMessageFile(directory, part, filename):
 
     raw_content = part.get_payload(decode=True)
     utf8_content = unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
+
+    if ('message.html' == filename):
+        m = re.search('<body[^>]*>(.+)<\/body>', utf8_content, re.S)
+        if (m != None):
+            utf8_content = m.group(1)
+
+        utf8_content = """<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <body>
+        %s
+    </body>
+</html>""" % (utf8_content)
 
     with open(os.path.join(directory, filename), 'wb') as fp:
         fp.write(utf8_content)
