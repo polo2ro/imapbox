@@ -124,22 +124,36 @@ def createRawFile(directory, data):
     f.close()
 
 
-def createMessageFile(directory, part, filename):
-
+def getPartCharset(part):
     if part.get_content_charset() is None:
-        charset = chardet.detect(str(part))['encoding']
-    else:
-        charset = part.get_content_charset()
+        return chardet.detect(str(part))['encoding']
+    return part.get_content_charset()
 
+
+def createTextFile(directory, part):
     raw_content = part.get_payload(decode=True)
+    utf8_content = unicode(raw_content, str(getPartCharset(part)), "ignore").encode('utf8','replace')
+
+    with open(os.path.join(directory, 'message.txt'), 'wb') as fp:
+        fp.write(utf8_content)
+
+
+def createHtmlFile(directory, part, embed):
+    raw_content = part.get_payload(decode=True)
+    charset = getPartCharset(part)
     utf8_content = unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
 
-    if ('message.html' == filename):
-        m = re.search('<body[^>]*>(.+)<\/body>', utf8_content, re.S)
-        if (m != None):
-            utf8_content = m.group(1)
+    m = re.search('<body[^>]*>(.+)<\/body>', utf8_content, re.S | re.I)
+    if (m != None):
+        utf8_content = m.group(1)
 
-        utf8_content = """<!doctype html>
+    for img in embed:
+        pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]));
+        path = os.path.join('attachments', img[1].encode('utf8','replace'))
+        utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
+
+
+    utf8_content = """<!doctype html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -149,14 +163,15 @@ def createMessageFile(directory, part, filename):
     </body>
 </html>""" % (utf8_content)
 
-    with open(os.path.join(directory, filename), 'wb') as fp:
+    with open(os.path.join(directory, 'message.html'), 'wb') as fp:
         fp.write(utf8_content)
 
 
 def extractAttachments(directory, msg):
     counter = 1
     text = None
-    html = None
+    html_part = None
+    embed_images = []
 
     keepcharacters = (' ','.','_')
     attdir = os.path.join(directory, 'attachments')
@@ -172,11 +187,11 @@ def extractAttachments(directory, msg):
         if not filename:
 
             if part.get_content_type() == 'text/plain':
-                createMessageFile(directory, part, 'message.txt')
+                createTextFile(directory, part)
                 continue
 
             if part.get_content_type() == 'text/html':
-                createMessageFile(directory, part, 'message.html')
+                html_part = part
                 continue
 
             ext = mimetypes.guess_extension(part.get_content_type())
@@ -184,6 +199,12 @@ def extractAttachments(directory, msg):
                 # Use a generic bag-of-bits extension
                 ext = '.bin'
             filename = 'part-%03d%s' % (counter, ext)
+
+        content_id =part.get('Content-Id')
+        if (content_id):
+            content_id = content_id[1:][:-1]
+            embed_images.append((content_id, filename))
+
         counter += 1
 
         "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
@@ -193,6 +214,10 @@ def extractAttachments(directory, msg):
 
         with open(os.path.join(attdir, filename), 'wb') as fp:
             fp.write(part.get_payload(decode=True))
+
+    if (html_part):
+        createHtmlFile(directory, html_part, embed_images)
+
 
 
 def saveEmail(data, local_folder):
