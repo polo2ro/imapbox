@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 
 # import mailboxresource
-from mailboxresource import *
+from mailboxresource import MailboxClient
 import argparse
 
 
