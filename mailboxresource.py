@@ -101,6 +101,11 @@ class Message:
         tos=self.getmailaddresses('to')
         ccs=self.getmailaddresses('cc')
 
+        parts = self.getParts()
+        attachments = []
+        for afile in parts['files']:
+            attachments.append(afile[1])
+
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf-8') as json_file:
 
             data = json.dumps({
@@ -108,7 +113,10 @@ class Message:
                 'From' : self.getFrom(),
                 'To' : tos,
                 'Cc' : ccs,
-                'Date' : self.msg['Date']
+                'Date' : self.msg['Date'],
+                'Attachments': attachments,
+                'Html': not None == parts['html'],
+                'Text': not None == parts['text']
             }, indent=4, ensure_ascii=False)
 
             json_file.write(unicode(data))
@@ -172,56 +180,73 @@ class Message:
             fp.write(utf8_content)
 
 
+    def getParts(self):
+        if not hasattr(self, 'message_parts'):
+            counter = 1
+            message_parts = {
+                'text': None,
+                'html': None,
+                'embed_images': [],
+                'files': []
+            }
+
+            keepcharacters = (' ','.','_')
+
+            for part in self.msg.walk():
+                # multipart/* are just containers
+                if part.get_content_maintype() == 'multipart':
+                    continue
+
+                # Applications should really sanitize the given filename so that an
+                # email message can't be used to overwrite important files
+                filename = part.get_filename()
+                if not filename:
+
+                    if part.get_content_type() == 'text/plain':
+                        message_parts['text'] = part
+                        continue
+
+                    if part.get_content_type() == 'text/html':
+                        message_parts['html'] = part
+                        continue
+
+                    ext = mimetypes.guess_extension(part.get_content_type())
+                    if not ext:
+                        # Use a generic bag-of-bits extension
+                        ext = '.bin'
+                    filename = 'part-%03d%s' % (counter, ext)
+
+
+                "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
+
+                content_id =part.get('Content-Id')
+                if (content_id):
+                    content_id = content_id[1:][:-1]
+                    message_parts['embed_images'].append((content_id, filename))
+
+                counter += 1
+                message_parts['files'].append((part, filename))
+            self.message_parts = message_parts
+        return self.message_parts
+
+
     def extractAttachments(self):
-        counter = 1
-        text = None
-        html_part = None
-        embed_images = []
+        message_parts = self.getParts()
 
-        keepcharacters = (' ','.','_')
-        attdir = os.path.join(self.directory, 'attachments')
+        if message_parts['text']:
+            self.createTextFile(message_parts['text'])
 
-        for part in self.msg.walk():
-            # multipart/* are just containers
-            if part.get_content_maintype() == 'multipart':
-                continue
+        if message_parts['html']:
+            self.createHtmlFile(message_parts['html'], message_parts['embed_images'])
 
-            # Applications should really sanitize the given filename so that an
-            # email message can't be used to overwrite important files
-            filename = part.get_filename()
-            if not filename:
-
-                if part.get_content_type() == 'text/plain':
-                    self.createTextFile(part)
-                    continue
-
-                if part.get_content_type() == 'text/html':
-                    html_part = part
-                    continue
-
-                ext = mimetypes.guess_extension(part.get_content_type())
-                if not ext:
-                    # Use a generic bag-of-bits extension
-                    ext = '.bin'
-                filename = 'part-%03d%s' % (counter, ext)
-
-            content_id =part.get('Content-Id')
-            if (content_id):
-                content_id = content_id[1:][:-1]
-                embed_images.append((content_id, filename))
-
-            counter += 1
-
-            "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
-
+        if message_parts['files']:
+            attdir = os.path.join(self.directory, 'attachments')
             if not os.path.exists(attdir):
                 os.makedirs(attdir)
+            for afile in message_parts['files']:
+                with open(os.path.join(attdir, afile[1]), 'wb') as fp:
+                    fp.write(afile[0].get_payload(decode=True))
 
-            with open(os.path.join(attdir, filename), 'wb') as fp:
-                fp.write(part.get_payload(decode=True))
-
-        if (html_part):
-            self.createHtmlFile(html_part, embed_images)
 
 
 
