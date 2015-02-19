@@ -13,7 +13,7 @@ import mimetypes
 import hashlib
 import chardet
 import gzip
-
+import cgi
 
 # email address REGEX matching the RFC 2822 spec
 # from perlfaq9
@@ -86,19 +86,26 @@ class Message:
             addrs[i]=(self.getmailheader(name), addr)
         return addrs
 
+    def getSubject(self):
+        if not hasattr(self, 'subject'):
+            self.subject = self.getmailheader(self.msg.get('Subject', ''))
+        return self.subject
+
+    def getFrom(self):
+        if not hasattr(self, 'from_'):
+            self.from_ = self.getmailaddresses('from')
+            self.from_ = ('', '') if not self.from_ else self.from_[0]
+        return self.from_
 
     def createMetaFile(self):
-        subject=self.getmailheader(self.msg.get('Subject', ''))
-        from_=self.getmailaddresses('from')
-        from_=('', '') if not from_ else from_[0]
         tos=self.getmailaddresses('to')
         ccs=self.getmailaddresses('cc')
 
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf-8') as json_file:
 
             data = json.dumps({
-                'Subject' : subject,
-                'From' : from_,
+                'Subject' : self.getSubject(),
+                'From' : self.getFrom(),
                 'To' : tos,
                 'Cc' : ccs,
                 'Date' : self.msg['Date']
@@ -146,15 +153,20 @@ class Message:
             utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
 
 
+        subject = self.getSubject().encode('utf8','replace')
+        fromname = self.getFrom()[0].encode('utf8','replace')
+
         utf8_content = """<!doctype html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="author" content="%s">
+    <title>%s</title>
 </head>
 <body>
 %s
 </body>
-</html>""" % (utf8_content)
+</html>""" % (cgi.escape(fromname), cgi.escape(subject), utf8_content)
 
         with open(os.path.join(self.directory, 'message.html'), 'wb') as fp:
             fp.write(utf8_content)
