@@ -12,11 +12,13 @@ def load_configuration(args):
     config.read(['/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')])
 
     options = {
-        'local_folder': '/var/imapbox',
+        'days': None,
+        'local_folder': '.',
         'accounts': []
     }
 
     if (config.has_section('imapbox')):
+        options['days'] = config.getInt('imapbox', 'days')
         options['local_folder'] = config.get('imapbox', 'local_folder')
 
     for section in config.sections():
@@ -44,6 +46,9 @@ def load_configuration(args):
     if (args.local_folder):
         options['local_folder'] = args.local_folder
 
+    if (args.days):
+        options['days'] = args.days
+
     return options
 
 
@@ -51,7 +56,8 @@ def load_configuration(args):
 
 def main():
     argparser = argparse.ArgumentParser(description="Dump a IMAP folder into .eml files")
-    argparser.add_argument('-l', dest='local_folder', help="Local folder where to create the email folders", default='.')
+    argparser.add_argument('-l', dest='local_folder', help="Local folder where to create the email folders")
+    argparser.add_argument('-d', dest='days', help="Local folder where to create the email folders", type=int)
     args = argparser.parse_args()
     options = load_configuration(args)
 

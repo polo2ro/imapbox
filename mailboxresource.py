@@ -6,7 +6,7 @@ import re
 import os
 import hashlib
 from message import Message
-
+import datetime
 
 
 
@@ -18,12 +18,19 @@ class MailboxClient:
         self.mailbox.login(username, password)
         self.mailbox.select(remote_folder)
 
-    def copy_emails(self, local_folder):
+    def copy_emails(self, days, local_folder):
         self.local_folder = local_folder
-        typ, data = self.mailbox.search(None, 'ALL')
+        criterion = 'ALL'
+
+        if days:
+            date = (datetime.date.today() - datetime.timedelta(days)).strftime("%d-%b-%Y")
+            criterion = '(SENTSINCE {date})'.format(date=date)
+
+        typ, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
             typ, data = self.mailbox.fetch(num, '(RFC822)')
             self.saveEmail(data)
+
 
     def cleanup(self):
         self.mailbox.close()
