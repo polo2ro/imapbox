@@ -48,6 +48,9 @@ You can have has many configured account as you want, one per section. Sections 
 
 ## Elasticsearch
 
+The metadata.json file contain the necessary informations for a search engine like [elasticsearch](http://www.elasticsearch.com/).
+Populate an elasticsearch index with the emails metadata can be done with a simple script 
+
 Create an index:
 ```bash
 #curl -XPUT 'localhost:9200/emails?pretty'
