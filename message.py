@@ -13,6 +13,8 @@ import mimetypes
 import chardet
 import gzip
 import cgi
+from HTMLParser import HTMLParser
+
 
 # email address REGEX matching the RFC 2822 spec
 # from perlfaq9
@@ -37,6 +39,25 @@ domain="(?:"  +  dot_atom  +  "|"  +  domain_lit  +  ")"
 addr_spec=local  +  "\@"  +  domain
 
 email_address_re=re.compile('^'+addr_spec+'$')
+
+
+
+
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
+
 
 
 class Message:
@@ -105,8 +126,15 @@ class Message:
         for afile in parts['files']:
             attachments.append(afile[1])
 
-        with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf-8') as json_file:
+        text_content = ''
 
+        if parts['text']:
+            text_content = self.getTextContent(parts['text'])
+        else:
+            if parts['html']:
+                text_content = strip_tags(self.getHtmlContent(parts['html']))
+
+        with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
                 'Subject' : self.getSubject(),
                 'From' : self.getFrom(),
@@ -114,8 +142,9 @@ class Message:
                 'Cc' : ccs,
                 'Date' : self.msg['Date'],
                 'Attachments': attachments,
-                'Html': not None == parts['html'],
-                'Text': not None == parts['text']
+                'WithHtml': not None == parts['html'],
+                'WithText': not None == parts['text'],
+                'Body': text_content.decode('utf8')
             }, indent=4, ensure_ascii=False)
 
             json_file.write(unicode(data))
@@ -137,30 +166,38 @@ class Message:
         return part.get_content_charset()
 
 
+    def getTextContent(self, parts):
+        if not hasattr(self, 'text_content'):
+            self.text_content = ''
+            for part in parts:
+                raw_content = part.get_payload(decode=True)
+                self.text_content += unicode(raw_content, str(self.getPartCharset(part)), "ignore").encode('utf8','replace')
+        return self.text_content
+
+
     def createTextFile(self, parts):
-        utf8_content = ''
-
-        for part in parts:
-            raw_content = part.get_payload(decode=True)
-            utf8_content += unicode(raw_content, str(self.getPartCharset(part)), "ignore").encode('utf8','replace')
-
+        utf8_content = self.getTextContent(parts)
         with open(os.path.join(self.directory, 'message.txt'), 'wb') as fp:
             fp.write(utf8_content)
 
+    def getHtmlContent(self, parts):
+        if not hasattr(self, 'html_content'):
+            self.html_content = ''
+
+            for part in parts:
+                raw_content = part.get_payload(decode=True)
+                charset = self.getPartCharset(part)
+                self.html_content += unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
+
+            m = re.search('<body[^>]*>(.+)<\/body>', self.html_content, re.S | re.I)
+            if (m != None):
+                self.html_content = m.group(1)
+
+        return self.html_content
+
 
     def createHtmlFile(self, parts, embed):
-
-        utf8_content = ''
-
-        for part in parts:
-            raw_content = part.get_payload(decode=True)
-            charset = self.getPartCharset(part)
-            utf8_content += unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
-
-        m = re.search('<body[^>]*>(.+)<\/body>', utf8_content, re.S | re.I)
-        if (m != None):
-            utf8_content = m.group(1)
-
+        utf8_content = self.getHtmlContent(parts)
         for img in embed:
             pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]));
             path = os.path.join('attachments', img[1].encode('utf8','replace'))
@@ -252,4 +289,3 @@ class Message:
             for afile in message_parts['files']:
                 with open(os.path.join(attdir, afile[1]), 'wb') as fp:
                     fp.write(afile[0].get_payload(decode=True))
-
