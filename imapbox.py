@@ -63,7 +63,7 @@ def main():
 
     for account in options['accounts']:
         mailbox = MailboxClient(account['host'], account['username'], account['password'], account['remote_folder'])
-        mailbox.copy_emails(options['local_folder'])
+        mailbox.copy_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
 
 

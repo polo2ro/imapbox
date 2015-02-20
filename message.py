@@ -137,18 +137,25 @@ class Message:
         return part.get_content_charset()
 
 
-    def createTextFile(self, part):
-        raw_content = part.get_payload(decode=True)
-        utf8_content = unicode(raw_content, str(self.getPartCharset(part)), "ignore").encode('utf8','replace')
+    def createTextFile(self, parts):
+        utf8_content = ''
+
+        for part in parts:
+            raw_content = part.get_payload(decode=True)
+            utf8_content += unicode(raw_content, str(self.getPartCharset(part)), "ignore").encode('utf8','replace')
 
         with open(os.path.join(self.directory, 'message.txt'), 'wb') as fp:
             fp.write(utf8_content)
 
 
-    def createHtmlFile(self, part, embed):
-        raw_content = part.get_payload(decode=True)
-        charset = self.getPartCharset(part)
-        utf8_content = unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
+    def createHtmlFile(self, parts, embed):
+
+        utf8_content = ''
+
+        for part in parts:
+            raw_content = part.get_payload(decode=True)
+            charset = self.getPartCharset(part)
+            utf8_content += unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
 
         m = re.search('<body[^>]*>(.+)<\/body>', utf8_content, re.S | re.I)
         if (m != None):
@@ -183,8 +190,8 @@ class Message:
         if not hasattr(self, 'message_parts'):
             counter = 1
             message_parts = {
-                'text': None,
-                'html': None,
+                'text': [],
+                'html': [],
                 'embed_images': [],
                 'files': []
             }
@@ -202,11 +209,11 @@ class Message:
                 if not filename:
 
                     if part.get_content_type() == 'text/plain':
-                        message_parts['text'] = part
+                        message_parts['text'].append(part)
                         continue
 
                     if part.get_content_type() == 'text/html':
-                        message_parts['html'] = part
+                        message_parts['html'].append(part)
                         continue
 
                     ext = mimetypes.guess_extension(part.get_content_type())
