@@ -13,8 +13,8 @@ import datetime
 class MailboxClient:
     """Operations on a mailbox"""
 
-    def __init__(self, host, username, password, remote_folder):
-        self.mailbox = imaplib.IMAP4_SSL(host)
+    def __init__(self, host, port, username, password, remote_folder):
+        self.mailbox = imaplib.IMAP4_SSL(host, port)
         self.mailbox.login(username, password)
         self.mailbox.select(remote_folder)
 

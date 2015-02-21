@@ -28,10 +28,14 @@ def load_configuration(args):
 
         account = {
             'name': section,
-            'remote_folder': 'INBOX'
+            'remote_folder': 'INBOX',
+            'port': 993
         }
 
         account['host'] = config.get(section, 'host')
+        if (config.has_option(section, 'port')):
+            account['port'] = config.get(section, 'port')
+
         account['username'] = config.get(section, 'username')
         account['password'] = config.get(section, 'password')
 
@@ -62,7 +66,7 @@ def main():
     options = load_configuration(args)
 
     for account in options['accounts']:
-        mailbox = MailboxClient(account['host'], account['username'], account['password'], account['remote_folder'])
+        mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
         mailbox.copy_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
 

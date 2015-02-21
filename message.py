@@ -288,4 +288,6 @@ class Message:
                 os.makedirs(attdir)
             for afile in message_parts['files']:
                 with open(os.path.join(attdir, afile[1]), 'wb') as fp:
-                    fp.write(afile[0].get_payload(decode=True))
+                    payload = afile[0].get_payload(decode=True)
+                    if payload:
+                        fp.write(payload)
