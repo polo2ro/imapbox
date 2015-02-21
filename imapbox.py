@@ -66,9 +66,14 @@ def main():
     options = load_configuration(args)
 
     for account in options['accounts']:
+
+        print '%s/%s (on %s)' % (account['name'], account['remote_folder'], account['host'])
+
         mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-        mailbox.copy_emails(options['days'], options['local_folder'])
+        stats = mailbox.copy_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
+
+        print '%d emails created, %d emails allready exists' % stats
 
 
 if __name__ == '__main__':

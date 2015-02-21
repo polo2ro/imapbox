@@ -19,6 +19,10 @@ class MailboxClient:
         self.mailbox.select(remote_folder)
 
     def copy_emails(self, days, local_folder):
+
+        n_saved = 0
+        n_exists = 0
+
         self.local_folder = local_folder
         criterion = 'ALL'
 
@@ -29,7 +33,11 @@ class MailboxClient:
         typ, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
             typ, data = self.mailbox.fetch(num, '(RFC822)')
-            self.saveEmail(data)
+            if self.saveEmail(data):
+                n_saved += 1
+            else:
+                n_exists += 1
+        return (n_saved, n_exists)
 
 
     def cleanup(self):
@@ -57,7 +65,7 @@ class MailboxClient:
                 directory = self.getEmailFolder(msg, data[0][1])
 
                 if os.path.exists(directory):
-                    continue;
+                    return False;
 
                 os.makedirs(directory)
 
@@ -66,4 +74,4 @@ class MailboxClient:
                 message.createRawFile(data[0][1])
                 message.createMetaFile()
                 message.extractAttachments()
-
+        return True;
