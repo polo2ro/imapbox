@@ -16,6 +16,12 @@ For each email in the imap mailbox, create a folder with the following content:
 Imapbox was designed to archive multiple mailboxes in one common directory tree, 
 copies of the same message spread knew several account will be archived once using the Message-Id property.
 
+## Use cases
+
+* Report on a website the content of an email address, like a maillling list.
+* Sharing address of several employees to perform cross-searches on a common database.
+* Archiving an imap account because of mailbox size restrictions, or to restrain the used disk space on the imap server
+
 
 ## Config file
 
