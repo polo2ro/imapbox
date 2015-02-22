@@ -2,7 +2,8 @@
 
 Dump imap inbox to a local folder in a regular backupable format: html, json and attachements.
 
-This program aims to save a mailbox for archive using files in indexable or searchable formats. The produced files should be readables without external software, for example, to find an email in backups using only the terminal
+This program aims to save a mailbox for archive using files in indexable or searchable formats. 
+The produced files should be readables without external software, for example, to find an email in backups using only the terminal
 
 For each email in the imap mailbox, create a folder with the following content:
 
@@ -11,6 +12,9 @@ For each email in the imap mailbox, create a folder with the following content:
 * __message.txt__ this file contain the body text if available in the original email, allways converted in utf-8
 * __metadata.json__ Various informations in JSON format, date, recipients, body text, etc... This file can be used from external applications or a search engine like [elasticsearch](http://www.elasticsearch.com/)
 * __raw.eml.gz__ A gziped version of the email in eml format
+
+Imapbox was designed to archive multiple mailboxes in one common directory tree, 
+copies of the same message spread knew several account will be archived once using the Message-Id property.
 
 
 ## Config file
@@ -32,6 +36,9 @@ password=secret
 host=imap.googlemail.com
 username=username@gmail.com
 password=secret
+remote_folder=INBOX
+port=993
+
 ```
 
 The imapbox section
@@ -53,7 +60,7 @@ Populate an elasticsearch index with the emails metadata can be done with a simp
 
 Create an index:
 ```bash
-#curl -XPUT 'localhost:9200/emails?pretty'
+#curl -XPUT 'localhost:9200/imapbox?pretty'
 ```
 
 Add all emails to index:
@@ -61,13 +68,13 @@ Add all emails to index:
 #!/bin/bash
 cd emails/
 for ID in */ ; do
-    curl -XPUT "localhost:9200/emails/external/${ID}?pretty" --data-binary "@${ID}/metadata.json"
+    curl -XPUT "localhost:9200/imapbox/message/${ID}?pretty" --data-binary "@${ID}/metadata.json"
 done
 ```
 
 A front-end can be used to search in email archives:
 
-* [Calaca](https://github.com/romansanchez/Calaca) is a beautiful, easy to use, search UI for Elasticsearch.
+* [Calaca](https://github.com/polo2ro/Calaca) is a beautiful, easy to use, search UI for Elasticsearch.
 * [Facetview](https://github.com/okfn/facetview)
 
 ## Similar projects
