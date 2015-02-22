@@ -41,6 +41,8 @@ port=993
 
 ```
 
+remote_folder and port are optional parameters.
+
 The imapbox section
 -------------------
 
