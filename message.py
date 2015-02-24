@@ -224,7 +224,7 @@ class Message:
 
 
     def sanitizeFilename(self, filename):
-        keepcharacters = (' ','.','_')
+        keepcharacters = (' ','.','_','-')
         return "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
 
 
@@ -247,7 +247,7 @@ class Message:
 
                 # Applications should really sanitize the given filename so that an
                 # email message can't be used to overwrite important files
-                filename = self.sanitizeFilename(part.get_filename())
+                filename = part.get_filename()
                 if not filename:
                     if part.get_content_type() == 'text/plain':
                         message_parts['text'].append(part)
@@ -262,6 +262,8 @@ class Message:
                         # Use a generic bag-of-bits extension
                         ext = '.bin'
                     filename = 'part-%03d%s' % (counter, ext)
+
+                filename = self.sanitizeFilename(filename)
 
                 content_id =part.get('Content-Id')
                 if (content_id):
