@@ -44,6 +44,10 @@ class MailboxClient:
                     print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
                 else:
                     print "MailboxClient.saveEmail() failed"
+
+                # Print raw mail
+                print data[0][1]
+
         return (n_saved, n_exists)
 
 

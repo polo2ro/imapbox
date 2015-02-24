@@ -225,8 +225,8 @@ class Message:
 
     def sanitizeFilename(self, filename):
         keepcharacters = (' ','.','_')
-        "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
-        return filename
+        return "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
+
 
     def getParts(self):
         if not hasattr(self, 'message_parts'):
@@ -247,9 +247,8 @@ class Message:
 
                 # Applications should really sanitize the given filename so that an
                 # email message can't be used to overwrite important files
-                filename = part.get_filename()
+                filename = self.sanitizeFilename(part.get_filename())
                 if not filename:
-
                     if part.get_content_type() == 'text/plain':
                         message_parts['text'].append(part)
                         continue
@@ -263,9 +262,6 @@ class Message:
                         # Use a generic bag-of-bits extension
                         ext = '.bin'
                     filename = 'part-%03d%s' % (counter, ext)
-
-
-                filename = self.sanitizeFilename(filename)
 
                 content_id =part.get('Content-Id')
                 if (content_id):
@@ -292,7 +288,7 @@ class Message:
             if not os.path.exists(attdir):
                 os.makedirs(attdir)
             for afile in message_parts['files']:
-                with open(os.path.join(attdir, self.sanitizeFilename(afile[1])), 'wb') as fp:
+                with open(os.path.join(attdir, afile[1]), 'wb') as fp:
                     payload = afile[0].get_payload(decode=True)
                     if payload:
                         fp.write(payload)
