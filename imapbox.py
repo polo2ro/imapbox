@@ -22,7 +22,7 @@ def load_configuration(args):
             options['days'] = config.getint('imapbox', 'days')
 
         if config.has_option('imapbox', 'local_folder'):
-            options['local_folder'] = config.get('imapbox', 'local_folder')
+            options['local_folder'] = os.path.expanduser(config.get('imapbox', 'local_folder'))
 
     for section in config.sections():
 

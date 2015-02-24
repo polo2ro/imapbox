@@ -33,20 +33,10 @@ class MailboxClient:
         typ, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
             typ, data = self.mailbox.fetch(num, '(RFC822)')
-            try:
-                if self.saveEmail(data):
-                    n_saved += 1
-                else:
-                    n_exists += 1
-            except StandardError as e:
-                # ex: Unsupported charset on decode
-                if hasattr(e, 'strerror'):
-                    print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
-                else:
-                    print "MailboxClient.saveEmail() failed"
-
-                # Print raw mail
-                print data[0][1]
+            if self.saveEmail(data):
+                n_saved += 1
+            else:
+                n_exists += 1
 
         return (n_saved, n_exists)
 
@@ -84,9 +74,18 @@ class MailboxClient:
 
                 os.makedirs(directory)
 
-                message = Message(directory, msg)
+                try:
+                    message = Message(directory, msg)
+                    message.createRawFile(data[0][1])
+                    message.createMetaFile()
+                    message.extractAttachments()
+                except StandardError as e:
+                    # ex: Unsupported charset on decode
+                    print directory
+                    if hasattr(e, 'strerror'):
+                        print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
+                    else:
+                        print "MailboxClient.saveEmail() failed"
+                        print e
 
-                message.createRawFile(data[0][1])
-                message.createMetaFile()
-                message.extractAttachments()
         return True;

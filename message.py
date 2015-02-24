@@ -14,6 +14,7 @@ import chardet
 import gzip
 import cgi
 from HTMLParser import HTMLParser
+import time
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -117,6 +118,16 @@ class Message:
             self.from_ = ('', '') if not self.from_ else self.from_[0]
         return self.from_
 
+    def normalizeDate(self, datestr):
+        t = email.utils.parsedate_tz(datestr)
+        timeval = time.mktime(t[:-1])
+        date = email.utils.formatdate(timeval, True)
+        utc = time.gmtime(email.utils.mktime_tz(t))
+        rfc2822 = '{} {:+03d}00'.format(date[:-6], t[9]/3600)
+        iso8601 = time.strftime('%Y%m%dT%H%M%SZ', utc)
+
+        return (rfc2822, iso8601)
+
     def createMetaFile(self):
         tos=self.getmailaddresses('to')
         ccs=self.getmailaddresses('cc')
@@ -134,13 +145,16 @@ class Message:
             if parts['html']:
                 text_content = strip_tags(self.getHtmlContent(parts['html']))
 
+        rfc2822, iso8601 = self.normalizeDate(self.msg['Date'])
+
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
                 'Subject' : self.getSubject(),
                 'From' : self.getFrom(),
                 'To' : tos,
                 'Cc' : ccs,
-                'Date' : self.msg['Date'],
+                'Date' : rfc2822,
+                'Utc' : iso8601,
                 'Attachments': attachments,
                 'WithHtml': not None == parts['html'],
                 'WithText': not None == parts['text'],
