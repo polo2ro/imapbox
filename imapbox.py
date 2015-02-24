@@ -18,8 +18,11 @@ def load_configuration(args):
     }
 
     if (config.has_section('imapbox')):
-        options['days'] = config.getInt('imapbox', 'days')
-        options['local_folder'] = config.get('imapbox', 'local_folder')
+        if config.has_option('imapbox', 'days'):
+            options['days'] = config.getint('imapbox', 'days')
+
+        if config.has_option('imapbox', 'local_folder'):
+            options['local_folder'] = config.get('imapbox', 'local_folder')
 
     for section in config.sections():
 
@@ -33,13 +36,13 @@ def load_configuration(args):
         }
 
         account['host'] = config.get(section, 'host')
-        if (config.has_option(section, 'port')):
+        if config.has_option(section, 'port'):
             account['port'] = config.get(section, 'port')
 
         account['username'] = config.get(section, 'username')
         account['password'] = config.get(section, 'password')
 
-        if (config.has_option(section, 'remote_folder')):
+        if config.has_option(section, 'remote_folder'):
             account['remote_folder'] = config.get(section, 'remote_folder')
 
         if (None == account['host'] or None == account['username'] or None == account['password']):
