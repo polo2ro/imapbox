@@ -16,7 +16,7 @@ class MailboxClient:
     def __init__(self, host, port, username, password, remote_folder):
         self.mailbox = imaplib.IMAP4_SSL(host, port)
         self.mailbox.login(username, password)
-        self.mailbox.select(remote_folder)
+        self.mailbox.select(remote_folder, readonly=True)
 
     def copy_emails(self, days, local_folder):
 
@@ -40,7 +40,7 @@ class MailboxClient:
                     n_exists += 1
             except StandardError as e:
                 # ex: Unsupported charset on decode
-                if hasattr(e, strerror):
+                if hasattr(e, 'strerror'):
                     print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
                 else:
                     print "MailboxClient.saveEmail() failed"
