@@ -38,9 +38,12 @@ class MailboxClient:
                     n_saved += 1
                 else:
                     n_exists += 1
-            except LookupError as e:
-                # Unsupport charset
-                print "MailboxClient.saveEmail() failed: %s" % (e.strerror)
+            except StandardError as e:
+                # ex: Unsupported charset on decode
+                if e.strerror:
+                    print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
+                else:
+                    print "MailboxClient.saveEmail() failed"
         return (n_saved, n_exists)
 
 
