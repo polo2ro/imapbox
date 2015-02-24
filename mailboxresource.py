@@ -33,10 +33,14 @@ class MailboxClient:
         typ, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
             typ, data = self.mailbox.fetch(num, '(RFC822)')
-            if self.saveEmail(data):
-                n_saved += 1
-            else:
-                n_exists += 1
+            try:
+                if self.saveEmail(data):
+                    n_saved += 1
+                else:
+                    n_exists += 1
+            except LookupError as e:
+                # Unsupport charset
+                print "MailboxClient.saveEmail() failed: %s" % (e.strerror)
         return (n_saved, n_exists)
 
 
