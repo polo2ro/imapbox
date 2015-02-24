@@ -40,7 +40,7 @@ class MailboxClient:
                     n_exists += 1
             except StandardError as e:
                 # ex: Unsupported charset on decode
-                if e.strerror:
+                if hasattr(e, strerror):
                     print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
                 else:
                     print "MailboxClient.saveEmail() failed"
