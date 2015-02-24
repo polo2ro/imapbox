@@ -46,16 +46,20 @@ class MailboxClient:
 
 
     def getEmailFolder(self, msg, data):
-        if not msg['Message-Id']:
-            foldername = hashlib.sha224(data).hexdigest()
-        else:
+        if msg['Message-Id']:
             foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
+        else:
+            foldername = hashlib.sha224(data).hexdigest()
 
-        directory = '%s/%s' %(self.local_folder, foldername)
+        year = 'None'
+        if msg['Date']:
+            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
+            if match:
+                year = match.group(1)
 
 
+        return os.path.join(self.local_folder, year, foldername)
 
-        return directory
 
 
     def saveEmail(self, data):
