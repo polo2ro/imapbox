@@ -85,6 +85,24 @@ port            | optional parameter, default value is 993
 
 
 
+
+
+## Metadata file
+
+Property        | Description
+----------------|----------------------
+Subject         | Email subject
+Body            | A text version of the message
+From            | Name and email of the sender
+To              | An array of recipients
+Cc              | An array of recipients
+Attachments     | An array of files names
+Date            | Message date with the timezone included, in the RFC 2822 format
+Utc             | Message date converted in UTC, in the ISO 8601 format
+WithHtml        | Boolean, if the message.html file exists or not
+WithText        | Boolean, if the message.txt file exists or not
+
+
 ## Elasticsearch
 
 The metadata.json file contain the necessary informations for a search engine like [elasticsearch](http://www.elasticsearch.com/).
@@ -108,6 +126,24 @@ A front-end can be used to search in email archives:
 
 * [Calaca](https://github.com/polo2ro/Calaca) is a beautiful, easy to use, search UI for Elasticsearch.
 * [Facetview](https://github.com/okfn/facetview)
+
+
+## Search in emails without indexation process
+
+[jq](http://stedolan.github.io/jq/) jq is a lightweight and flexible command-line JSON processor.
+
+Example command to browse email subjects:
+
+```bash
+find . -name "*.json" | xargs cat | jq '.Subject'
+```
+
+Example with a filter on UTC date:
+
+```bash
+find . -name "*.json" | xargs cat | jq 'select(.Utc > "20150221T130000Z")'
+```
+
 
 ## Similar projects
 
