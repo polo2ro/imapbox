@@ -47,6 +47,22 @@ port=993
 
 ```
 
+Possibles parameters for the imapbox section:
+
+local_folder    | the full path to the folder where the emails are stored. This can be overwwritten with the shell argument -l
+days            | Imapbox will retrieve all mails created from this number of day, if this parmaeter is not set, imapbox will get all the emails from the imap account. This can be overwwritten with the shell argument -d
+
+
+
+
+
+Possibles parameters for an account section:
+
+host            | Imap server hostname
+username        | login id for the imap server
+password        | The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set chmod 700 on you ~/.config/mailbox/config.cfg file 
+
+
 remote_folder and port are optional parameters.
 
 The imapbox section
