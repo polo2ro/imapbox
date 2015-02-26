@@ -47,35 +47,43 @@ port=993
 
 ```
 
-Possibles parameters for the imapbox section:
-
-local_folder    | the full path to the folder where the emails are stored. This can be overwwritten with the shell argument -l
-days            | Imapbox will retrieve all mails created from this number of day, if this parmaeter is not set, imapbox will get all the emails from the imap account. This can be overwwritten with the shell argument -d
 
 
 
 
 
-Possibles parameters for an account section:
-
-host            | Imap server hostname
-username        | login id for the imap server
-password        | The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set chmod 700 on you ~/.config/mailbox/config.cfg file 
-
-
-remote_folder and port are optional parameters.
 
 The imapbox section
 -------------------
 
-local_folder: where to archive the email, default is the current directory
 
-days: number of days back to get in the imap account, this should be set greater and equals to the cronjob frequency
+Possibles parameters for the imapbox section:
+
+Parameter       | Description
+----------------|----------------------
+local_folder    | the full path to the folder where the emails are stored. If the local_folder is not set, imapbox will download the emails in the current directory. This can be overwwritten with the shell argument -l
+days            | number of days back to get in the imap account, this should be set greater and equals to the cronjob frequency. If this parameter is not set, imapbox will get all the emails from the imap account. This can be overwwritten with the shell argument -d
+
+
+
+
 
 other sections
 --------------
 
 You can have has many configured account as you want, one per section. Sections names may contains the account name.
+
+Possibles parameters for an account section:
+
+Parameter       | Description
+----------------|----------------------
+host            | Imap server hostname
+username        | login id for the imap server
+password        | The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set chmod 700 on you ~/.config/mailbox/config.cfg file 
+remote_folder   | optional parameter, imap foldername (multiple foldername is not supported for the moment). Default value is INBOX
+port            | optional parameter, default value is 993
+
+
 
 ## Elasticsearch
 
