@@ -98,7 +98,7 @@ To              | An array of recipients
 Cc              | An array of recipients
 Attachments     | An array of files names
 Date            | Message date with the timezone included, in the RFC 2822 format
-Utc             | Message date converted in UTC, in the ISO 8601 format
+Utc             | Message date converted in UTC, in the ISO 8601 format. This can be used to sort emails or filter emails by date 
 WithHtml        | Boolean, if the message.html file exists or not
 WithText        | Boolean, if the message.txt file exists or not
 
