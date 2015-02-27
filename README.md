@@ -98,7 +98,7 @@ To              | An array of recipients
 Cc              | An array of recipients
 Attachments     | An array of files names
 Date            | Message date with the timezone included, in the RFC 2822 format
-Utc             | Message date converted in UTC, in the ISO 8601 format
+Utc             | Message date converted in UTC, in the ISO 8601 format. This can be used to sort emails or filter emails by date 
 WithHtml        | Boolean, if the message.html file exists or not
 WithText        | Boolean, if the message.txt file exists or not
 
@@ -130,7 +130,7 @@ A front-end can be used to search in email archives:
 
 ## Search in emails without indexation process
 
-[jq](http://stedolan.github.io/jq/) jq is a lightweight and flexible command-line JSON processor.
+[jq](http://stedolan.github.io/jq/) is a lightweight and flexible command-line JSON processor.
 
 Example command to browse email subjects:
 
@@ -147,4 +147,4 @@ find . -name "*.json" | xargs cat | jq 'select(.Utc > "20150221T130000Z")'
 
 ## Similar projects
 
-[NoPriv](https://github.com/RaymiiOrg/NoPriv) is a python script to backup any IMAP capable email account to a bowsable HTML archive and a Maildir folder.
+[NoPriv](https://github.com/RaymiiOrg/NoPriv) is a python script to backup any IMAP capable email account to a browsable HTML archive and a Maildir folder.
