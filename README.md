@@ -130,7 +130,7 @@ A front-end can be used to search in email archives:
 
 ## Search in emails without indexation process
 
-[jq](http://stedolan.github.io/jq/) jq is a lightweight and flexible command-line JSON processor.
+[jq](http://stedolan.github.io/jq/) is a lightweight and flexible command-line JSON processor.
 
 Example command to browse email subjects:
 
