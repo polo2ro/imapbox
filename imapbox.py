@@ -4,11 +4,12 @@
 # import mailboxresource
 from mailboxresource import MailboxClient
 import argparse
-import ConfigParser, os
+from six.moves import configparser
+import os
 
 
 def load_configuration(args):
-    config = ConfigParser.ConfigParser(allow_no_value=True)
+    config = configparser.ConfigParser(allow_no_value=True)
     config.read(['/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')])
 
     options = {
@@ -70,13 +71,13 @@ def main():
 
     for account in options['accounts']:
 
-        print '%s/%s (on %s)' % (account['name'], account['remote_folder'], account['host'])
+        print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
 
         mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
         stats = mailbox.copy_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
 
-        print '%d emails created, %d emails allready exists' % stats
+        print('{} emails created, {} emails allready exists'.format(stats[0], stats[1]))
 
 
 if __name__ == '__main__':
