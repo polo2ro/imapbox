@@ -156,8 +156,8 @@ class Message:
                 'Date' : rfc2822,
                 'Utc' : iso8601,
                 'Attachments': attachments,
-                'WithHtml': not None == parts['html'],
-                'WithText': not None == parts['text'],
+                'WithHtml': len(parts['html']) > 0,
+                'WithText': len(parts['text']) > 0,
                 'Body': text_content.decode('utf8')
             }, indent=4, ensure_ascii=False)
 
