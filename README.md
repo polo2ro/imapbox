@@ -148,3 +148,7 @@ find . -name "*.json" | xargs cat | jq 'select(.Utc > "20150221T130000Z")'
 ## Similar projects
 
 [NoPriv](https://github.com/RaymiiOrg/NoPriv) is a python script to backup any IMAP capable email account to a browsable HTML archive and a Maildir folder.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/polo2ro/imapbox/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
