@@ -110,7 +110,7 @@ Populate an elasticsearch index with the emails metadata can be done with a simp
 
 Create an index:
 ```bash
-#curl -XPUT 'localhost:9200/imapbox?pretty'
+curl -XPUT 'localhost:9200/imapbox?pretty'
 ```
 
 Add all emails to index:
