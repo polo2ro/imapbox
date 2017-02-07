@@ -2,7 +2,7 @@
 
 Dump imap inbox to a local folder in a regular backupable format: html, json and attachements.
 
-This program aims to save a mailbox for archive using files in indexable or searchable formats. 
+This program aims to save a mailbox for archive using files in indexable or searchable formats.
 The produced files should be readables without external software, for example, to find an email in backups using only the terminal
 
 For each email in the imap mailbox, create a folder with the following content:
@@ -13,7 +13,7 @@ For each email in the imap mailbox, create a folder with the following content:
 * __metadata.json__ Various informations in JSON format, date, recipients, body text, etc... This file can be used from external applications or a search engine like [elasticsearch](http://www.elasticsearch.com/)
 * __raw.eml.gz__ A gziped version of the email in eml format
 
-Imapbox was designed to archive multiple mailboxes in one common directory tree, 
+Imapbox was designed to archive multiple mailboxes in one common directory tree,
 copies of the same message spread knew several account will be archived once using the Message-Id property.
 
 ## Use cases
@@ -79,7 +79,7 @@ Parameter       | Description
 ----------------|----------------------
 host            | Imap server hostname
 username        | login id for the imap server
-password        | The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set chmod 700 on you ~/.config/mailbox/config.cfg file 
+password        | The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set chmod 700 on you ~/.config/mailbox/config.cfg file
 remote_folder   | optional parameter, imap foldername (multiple foldername is not supported for the moment). Default value is INBOX
 port            | optional parameter, default value is 993
 
@@ -98,7 +98,7 @@ To              | An array of recipients
 Cc              | An array of recipients
 Attachments     | An array of files names
 Date            | Message date with the timezone included, in the RFC 2822 format
-Utc             | Message date converted in UTC, in the ISO 8601 format. This can be used to sort emails or filter emails by date 
+Utc             | Message date converted in UTC, in the ISO 8601 format. This can be used to sort emails or filter emails by date
 WithHtml        | Boolean, if the message.html file exists or not
 WithText        | Boolean, if the message.txt file exists or not
 
@@ -106,7 +106,7 @@ WithText        | Boolean, if the message.txt file exists or not
 ## Elasticsearch
 
 The metadata.json file contain the necessary informations for a search engine like [elasticsearch](http://www.elasticsearch.com/).
-Populate an elasticsearch index with the emails metadata can be done with a simple script 
+Populate an elasticsearch index with the emails metadata can be done with a simple script
 
 Create an index:
 ```bash
@@ -132,13 +132,10 @@ A front-end can be used to search in email archives:
 
 [jq](http://stedolan.github.io/jq/) is a lightweight and flexible command-line JSON processor.
 
-Example command to browse email subjects:
+Example command to browse emails:
 
 ```bash
-find . -name "*.json" | xargs cat | jq '.Subject'
-
-# subject and email
-find . -name "*.json" | xargs cat | jq '[.Subject, .From[1]] | join(", ")'
+find . -name "*.json" | xargs cat | jq '[.Date, .Id, .Subject, " ✉ "] + .From | join(" ")'
 ```
 
 Example with a filter on UTC date:
@@ -151,4 +148,3 @@ find . -name "*.json" | xargs cat | jq 'select(.Utc > "20150221T130000Z")'
 ## Similar projects
 
 [NoPriv](https://github.com/RaymiiOrg/NoPriv) is a python script to backup any IMAP capable email account to a browsable HTML archive and a Maildir folder.
-
