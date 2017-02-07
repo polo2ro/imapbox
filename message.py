@@ -149,6 +149,7 @@ class Message:
 
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
+                'Message-ID': self.msg['Message-Id'],
                 'Subject' : self.getSubject(),
                 'From' : self.getFrom(),
                 'To' : tos,
