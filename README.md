@@ -136,6 +136,9 @@ Example command to browse email subjects:
 
 ```bash
 find . -name "*.json" | xargs cat | jq '.Subject'
+
+# subject and email
+find . -name "*.json" | xargs cat | jq '[.Subject, .From[1]] | join(", ")'
 ```
 
 Example with a filter on UTC date:
