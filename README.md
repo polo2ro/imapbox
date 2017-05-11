@@ -1,4 +1,6 @@
-# Imapbox
+![IMAPBOX](logo.png)
+
+
 
 Dump imap inbox to a local folder in a regular backupable format: html, json and attachements.
 
@@ -18,7 +20,8 @@ copies of the same message spread knew several account will be archived once usi
 
 ## Use cases
 
-* Report on a website the content of an email address, like a maillling list.
+* I use the script to merge all my mail accounts in one searchable directory on my NAS server.
+* Report on a website the content of an email address, like a mailing list.
 * Sharing address of several employees to perform cross-searches on a common database.
 * Archiving an imap account because of mailbox size restrictions, or to restrain the used disk space on the imap server
 
