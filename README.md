@@ -18,6 +18,10 @@ For each email in the imap mailbox, create a folder with the following content:
 Imapbox was designed to archive multiple mailboxes in one common directory tree,
 copies of the same message spread knew several account will be archived once using the Message-Id property.
 
+## Install
+
+You need python 2 to run this script, and the [chardet](https://pypi.python.org/pypi/chardet) library.
+
 ## Use cases
 
 * I use the script to merge all my mail accounts in one searchable directory on my NAS server.
