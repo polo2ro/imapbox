@@ -39,6 +39,7 @@ example :
 [imapbox]
 local_folder=/var/imapbox
 days=6
+wkhtmltopdf=/opt/bin/wkhtmltopdf
 
 [account1]
 host=mail.autistici.org
@@ -70,6 +71,7 @@ Parameter       | Description
 ----------------|----------------------
 local_folder    | the full path to the folder where the emails are stored. If the local_folder is not set, imapbox will download the emails in the current directory. This can be overwwritten with the shell argument -l
 days            | number of days back to get in the imap account, this should be set greater and equals to the cronjob frequency. If this parameter is not set, imapbox will get all the emails from the imap account. This can be overwwritten with the shell argument -d
+wkhtmltopdf     | the location of the `wkhtmltopdf` binary. By default `pdfkit` will attempt to locate this using `which` (on UNIX type systems) or `where` (on Windows).
 
 
 

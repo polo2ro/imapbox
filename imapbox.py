@@ -15,6 +15,7 @@ def load_configuration(args):
     options = {
         'days': None,
         'local_folder': '.',
+        'wkhtmltopdf': None,
         'accounts': []
     }
 
@@ -24,6 +25,10 @@ def load_configuration(args):
 
         if config.has_option('imapbox', 'local_folder'):
             options['local_folder'] = os.path.expanduser(config.get('imapbox', 'local_folder'))
+
+        if config.has_option('imapbox', 'wkhtmltopdf')
+            options['wkhtmltopdf'] = os.path.expanduser(config.get('imapbox', 'wkhtmltopdf'))
+
 
     for section in config.sections():
 
@@ -57,6 +62,9 @@ def load_configuration(args):
     if (args.days):
         options['days'] = args.days
 
+    if (args.wkhtmltopdf):
+        options['wkhtmltopdf'] = args.wkhtmltopdf
+
     return options
 
 
@@ -66,6 +74,7 @@ def main():
     argparser = argparse.ArgumentParser(description="Dump a IMAP folder into .eml files")
     argparser.add_argument('-l', dest='local_folder', help="Local folder where to create the email folders")
     argparser.add_argument('-d', dest='days', help="Local folder where to create the email folders", type=int)
+    argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     args = argparser.parse_args()
     options = load_configuration(args)
 
@@ -74,7 +83,7 @@ def main():
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
 
         mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-        stats = mailbox.copy_emails(options['days'], options['local_folder'])
+        stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
         mailbox.cleanup()
 
         print('{} emails created, {} emails allready exists'.format(stats[0], stats[1]))
