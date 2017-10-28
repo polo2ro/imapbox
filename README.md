@@ -1,6 +1,6 @@
 ![IMAPBOX](logo.png)
 
-Dump IMAP inbox to a local folder in a regular backupable format: HTML, JSON and attachments.
+Dump IMAP inbox to a local folder in a regular backupable format: HTML, PDF, JSON and attachments.
 
 This program aims to save a mailbox for archive using files in indexable or searchable formats.
 The produced files should be readable without external software, for example, to find an email in backups using only the terminal.
