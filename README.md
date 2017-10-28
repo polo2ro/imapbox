@@ -11,7 +11,7 @@ For each email in the IMAP mailbox, create a folder with the following content:
 * __message.pdf__ - This file is created from `message.html` when the `wkhtmltopdf` option is set in the config file.
 * __attachments__ - The attachments folder contains the attached files and the embeded images.
 * __message.txt__ - This file contain the body text if available in the original email, always converted in UTF-8.
-* __metadata.json__ - Various informations in JSON format, date, recipients, body text, etc... This file can be used from external applications or a search engine like [elasticsearch](http://www.elasticsearch.com/).
+* __metadata.json__ - Various informations in JSON format, date, recipients, body text, etc... This file can be used from external applications or a search engine like [Elasticsearch](http://www.elasticsearch.com/).
 * __raw.eml.gz__ - A gziped version of the email in `.eml` format.
 
 Imapbox was designed to archive multiple mailboxes in one common directory tree,
