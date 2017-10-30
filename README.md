@@ -2,24 +2,27 @@
 
 Dump IMAP inbox to a local folder in a regular backupable format: HTML, PDF, JSON and attachments.
 
-This program aims to save a mailbox for archive using files in indexable or searchable formats.
-The produced files should be readable without external software, for example, to find an email in backups using only the terminal.
+This program aims to save a mailbox for archive using files in indexable or searchable formats. The produced files should be readable without external software, for example, to find an email in backups using only the terminal.
 
-For each email in the IMAP mailbox, create a folder with the following content:
+For each email in an IMAP mailbox, a folder is created with the following files:
 
-* __message.html__ - If an html part exists for the message body. the `message.html` will always be in UTF-8, the embedded images links are modified to refer to the attachments subfolder.
-* __message.pdf__ - This file is created from `message.html` when the `wkhtmltopdf` option is set in the config file.
-* __attachments__ - The attachments folder contains the attached files and the embeded images.
-* __message.txt__ - This file contain the body text if available in the original email, always converted in UTF-8.
-* __metadata.json__ - Various informations in JSON format, date, recipients, body text, etc... This file can be used from external applications or a search engine like [Elasticsearch](http://www.elasticsearch.com/).
-* __raw.eml.gz__ - A gziped version of the email in `.eml` format.
+File              | Description
+------------------|------------------
+__message.html__  | If an html part exists for the message body. the `message.html` will always be in UTF-8, the embedded images links are modified to refer to the attachments subfolder.
+__message.pdf__   | This file is optionally created from `message.html` when the `wkhtmltopdf` option is set in the config file.
+__attachments__   | The attachments folder contains the attached files and the embeded images.
+__message.txt__   | This file contain the body text if available in the original email, always converted in UTF-8.
+__metadata.json__ | Various informations in JSON format, date, recipients, body text, etc... This file can be used from external applications or a search engine like [Elasticsearch](http://www.elasticsearch.com/).
+__raw.eml.gz__    | A gziped version of the email in `.eml` format.
 
 Imapbox was designed to archive multiple mailboxes in one common directory tree,
 copies of the same message spread knew several account will be archived once using the Message-Id property.
 
 ## Install
 
-You need python 2 to run this script, and the [chardet](https://pypi.python.org/pypi/chardet) library.
+This script requires python 2 and the following libraries:
+* [chardet](https://pypi.python.org/pypi/chardet) library – required for character encoding detection.
+* (optional) [pdfkit](https://pypi.python.org/pypi/pdfkit) library – required for archiving emails to PDF.
 
 ## Use cases
 
