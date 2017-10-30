@@ -15,7 +15,11 @@ import gzip
 import cgi
 from HTMLParser import HTMLParser
 import time
-import pdfkit
+import pkgutil
+
+# import pdfkit if its loader is available
+has_pdfkit = pkgutil.find_loader('pdfkit') is not None
+if has_pdfkit: import pdfkit
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -41,7 +45,6 @@ domain="(?:"  +  dot_atom  +  "|"  +  domain_lit  +  ")"
 addr_spec=local  +  "\@"  +  domain
 
 email_address_re=re.compile('^'+addr_spec+'$')
-
 
 
 
@@ -313,7 +316,8 @@ class Message:
 
 
     def createPdfFile(self, wkhtmltopdf):
-        html_path = os.path.join(self.directory, 'message.html')
-        pdf_path = os.path.join(self.directory, 'message.pdf')
-        config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
-        pdfkit.from_file(html_path, pdf_path, configuration=config)
+        if has_pdfkit:
+            html_path = os.path.join(self.directory, 'message.html')
+            pdf_path = os.path.join(self.directory, 'message.pdf')
+            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
+            pdfkit.from_file(html_path, pdf_path, configuration=config)
