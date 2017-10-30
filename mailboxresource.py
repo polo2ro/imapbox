@@ -18,12 +18,13 @@ class MailboxClient:
         self.mailbox.login(username, password)
         self.mailbox.select(remote_folder, readonly=True)
 
-    def copy_emails(self, days, local_folder):
+    def copy_emails(self, days, local_folder, wkhtmltopdf):
 
         n_saved = 0
         n_exists = 0
 
         self.local_folder = local_folder
+        self.wkhtmltopdf = wkhtmltopdf
         criterion = 'ALL'
 
         if days:
@@ -70,7 +71,7 @@ class MailboxClient:
                 directory = self.getEmailFolder(msg, data[0][1])
 
                 if os.path.exists(directory):
-                    return False;
+                    return False
 
                 os.makedirs(directory)
 
@@ -79,6 +80,10 @@ class MailboxClient:
                     message.createRawFile(data[0][1])
                     message.createMetaFile()
                     message.extractAttachments()
+
+                    if self.wkhtmltopdf:
+                        message.createPdfFile(self.wkhtmltopdf)
+
                 except StandardError as e:
                     # ex: Unsupported charset on decode
                     print directory
@@ -88,4 +93,4 @@ class MailboxClient:
                         print "MailboxClient.saveEmail() failed"
                         print e
 
-        return True;
+        return True

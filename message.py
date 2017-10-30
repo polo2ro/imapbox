@@ -15,6 +15,11 @@ import gzip
 import cgi
 from HTMLParser import HTMLParser
 import time
+import pkgutil
+
+# import pdfkit if its loader is available
+has_pdfkit = pkgutil.find_loader('pdfkit') is not None
+if has_pdfkit: import pdfkit
 
 
 # email address REGEX matching the RFC 2822 spec
@@ -40,7 +45,6 @@ domain="(?:"  +  dot_atom  +  "|"  +  domain_lit  +  ")"
 addr_spec=local  +  "\@"  +  domain
 
 email_address_re=re.compile('^'+addr_spec+'$')
-
 
 
 
@@ -214,7 +218,7 @@ class Message:
     def createHtmlFile(self, parts, embed):
         utf8_content = self.getHtmlContent(parts)
         for img in embed:
-            pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]));
+            pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]))
             path = os.path.join('attachments', img[1].encode('utf8','replace'))
             utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
 
@@ -309,3 +313,13 @@ class Message:
                     payload = afile[0].get_payload(decode=True)
                     if payload:
                         fp.write(payload)
+
+
+    def createPdfFile(self, wkhtmltopdf):
+        if has_pdfkit:
+            html_path = os.path.join(self.directory, 'message.html')
+            pdf_path = os.path.join(self.directory, 'message.pdf')
+            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
+            pdfkit.from_file(html_path, pdf_path, configuration=config)
+        else:
+            print "Couldn't create PDF message, since \"pdfkit\" module isn't installed."
