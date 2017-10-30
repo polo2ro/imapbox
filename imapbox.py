@@ -26,7 +26,7 @@ def load_configuration(args):
         if config.has_option('imapbox', 'local_folder'):
             options['local_folder'] = os.path.expanduser(config.get('imapbox', 'local_folder'))
 
-        if config.has_option('imapbox', 'wkhtmltopdf')
+        if config.has_option('imapbox', 'wkhtmltopdf'):
             options['wkhtmltopdf'] = os.path.expanduser(config.get('imapbox', 'wkhtmltopdf'))
 
 
