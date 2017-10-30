@@ -21,8 +21,8 @@ copies of the same message spread knew several account will be archived once usi
 ## Install
 
 This script requires python 2 and the following libraries:
-* [chardet](https://pypi.python.org/pypi/chardet) library – required for character encoding detection.
-* (optional) [pdfkit](https://pypi.python.org/pypi/pdfkit) library – required for archiving emails to PDF.
+* [chardet](https://pypi.python.org/pypi/chardet) – required for character encoding detection.
+* [pdfkit](https://pypi.python.org/pypi/pdfkit) – optionally required for archiving emails to PDF.
 
 ## Use cases
 
