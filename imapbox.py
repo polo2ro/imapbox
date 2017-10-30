@@ -86,7 +86,7 @@ def main():
         stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
         mailbox.cleanup()
 
-        print('{} emails created, {} emails allready exists'.format(stats[0], stats[1]))
+        print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
 
 
 if __name__ == '__main__':
