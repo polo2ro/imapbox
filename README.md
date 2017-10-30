@@ -66,7 +66,7 @@ Possibles parameters for the imapbox section:
 
 Parameter       | Description
 ----------------|----------------------
-local_folder    | The full path to the folder where the emails are stored. If the local_folder is not set, imapbox will download the emails in the current directory. This can be overwritten with the shell argument `-l`.
+local_folder    | The full path to the folder where the emails should be stored. If the local_folder is not set, imapbox will download the emails in the current directory. This can be overwritten with the shell argument `-l`.
 days            | Number of days back to get in the IMAP account, this should be set greater and equals to the cronjob frequency. If this parameter is not set, imapbox will get all the emails from the IMAP account. This can be overwritten with the shell argument `-d`.
 wkhtmltopdf     | (optional) The location of the `wkhtmltopdf` binary. By default `pdfkit` will attempt to locate this using `which` (on UNIX type systems) or `where` (on Windows). This can be overwritten with the shell argument `-w`.
 
