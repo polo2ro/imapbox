@@ -321,3 +321,5 @@ class Message:
             pdf_path = os.path.join(self.directory, 'message.pdf')
             config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
             pdfkit.from_file(html_path, pdf_path, configuration=config)
+        else:
+            print "Couldn't create PDF message, since \"pdfkit\" module isn't installed."
