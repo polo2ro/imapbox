@@ -3,8 +3,8 @@
 
 
 import email
-from email.Utils import parseaddr
-from email.Header import decode_header
+from email.utils import parseaddr
+from email.header import decode_header
 import re
 import os
 import json
@@ -13,9 +13,11 @@ import mimetypes
 import chardet
 import gzip
 import cgi
-from HTMLParser import HTMLParser
 import time
 import pkgutil
+
+import six
+from six.moves import html_parser
 
 # import pdfkit if its loader is available
 has_pdfkit = pkgutil.find_loader('pdfkit') is not None
@@ -49,7 +51,7 @@ email_address_re=re.compile('^'+addr_spec+'$')
 
 
 
-class MLStripper(HTMLParser):
+class MLStripper(html_parser.HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
@@ -83,10 +85,10 @@ class Message:
         else:
             for i, (text, charset) in enumerate(headers):
                 try:
-                    headers[i]=unicode(text, charset or default, errors='replace')
+                    headers[i]=six.text_type(text, charset or default, errors='replace')
                 except LookupError:
                     # if the charset is unknown, force default
-                    headers[i]=unicode(text, default, errors='replace')
+                    headers[i]=six.text_type(text, default, errors='replace')
             return u"".join(headers)
 
 
@@ -127,7 +129,7 @@ class Message:
         timeval = time.mktime(t[:-1])
         date = email.utils.formatdate(timeval, True)
         utc = time.gmtime(email.utils.mktime_tz(t))
-        rfc2822 = '{} {:+03d}00'.format(date[:-6], t[9]/3600)
+        rfc2822 = '{} {:+03d}00'.format(date[:-6], t[9]//3600)
         iso8601 = time.strftime('%Y%m%dT%H%M%SZ', utc)
 
         return (rfc2822, iso8601)
@@ -322,4 +324,4 @@ class Message:
             config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
             pdfkit.from_file(html_path, pdf_path, configuration=config)
         else:
-            print "Couldn't create PDF message, since \"pdfkit\" module isn't installed."
+            print("Couldn't create PDF message, since \"pdfkit\" module isn't installed.")
