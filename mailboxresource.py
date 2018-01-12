@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+from __future__ import print_function
+
 import imaplib, email
 import re
 import os
@@ -84,13 +86,13 @@ class MailboxClient:
                     if self.wkhtmltopdf:
                         message.createPdfFile(self.wkhtmltopdf)
 
-                except StandardError as e:
+                except Exception as e:
                     # ex: Unsupported charset on decode
-                    print directory
+                    print(directory)
                     if hasattr(e, 'strerror'):
-                        print "MailboxClient.saveEmail() failed: {0}".format(e.strerror)
+                        print("MailboxClient.saveEmail() failed:", e.strerror)
                     else:
-                        print "MailboxClient.saveEmail() failed"
-                        print e
+                        print("MailboxClient.saveEmail() failed")
+                        print(e)
 
         return True
