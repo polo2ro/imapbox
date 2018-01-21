@@ -35,6 +35,9 @@ def load_configuration(args):
         if ('imapbox' == section):
             continue
 
+        if (args.specific_account and (args.specific_account != section)):
+            continue
+
         account = {
             'name': section,
             'remote_folder': 'INBOX',
@@ -75,6 +78,7 @@ def main():
     argparser.add_argument('-l', dest='local_folder', help="Local folder where to create the email folders")
     argparser.add_argument('-d', dest='days', help="Local folder where to create the email folders", type=int)
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
+    argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
     args = argparser.parse_args()
     options = load_configuration(args)
 
