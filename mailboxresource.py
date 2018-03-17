@@ -69,7 +69,7 @@ class MailboxClient:
     def saveEmail(self, data):
         for response_part in data:
             if isinstance(response_part, tuple):
-                msg = email.message_from_string(response_part[1])
+                msg = email.message_from_string(response_part[1].decode("utf-8"))
                 directory = self.getEmailFolder(msg, data[0][1])
 
                 if os.path.exists(directory):
@@ -77,22 +77,9 @@ class MailboxClient:
 
                 os.makedirs(directory)
 
-                try:
-                    message = Message(directory, msg)
-                    message.createRawFile(data[0][1])
-                    message.createMetaFile()
-                    message.extractAttachments()
-
-                    if self.wkhtmltopdf:
-                        message.createPdfFile(self.wkhtmltopdf)
-
-                except Exception as e:
-                    # ex: Unsupported charset on decode
-                    print(directory)
-                    if hasattr(e, 'strerror'):
-                        print("MailboxClient.saveEmail() failed:", e.strerror)
-                    else:
-                        print("MailboxClient.saveEmail() failed")
-                        print(e)
+                message = Message(directory, msg)
+                message.createRawFile(data[0][1])
+                message.createMetaFile()
+                message.extractAttachments()
 
         return True

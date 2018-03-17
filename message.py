@@ -16,7 +16,6 @@ import cgi
 import time
 import pkgutil
 
-import six
 from six.moves import html_parser
 
 # import pdfkit if its loader is available
@@ -55,6 +54,8 @@ class MLStripper(html_parser.HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
+    def convert_charrefs(x):
+        return x
     def handle_data(self, d):
         self.fed.append(d)
     def get_data(self):
@@ -84,11 +85,7 @@ class Message:
             return header_text.encode('ascii', 'replace').decode('ascii')
         else:
             for i, (text, charset) in enumerate(headers):
-                try:
-                    headers[i]=six.text_type(text, charset or default, errors='replace')
-                except LookupError:
-                    # if the charset is unknown, force default
-                    headers[i]=six.text_type(text, default, errors='replace')
+                headers[i]=str(text)
             return u"".join(headers)
 
 
@@ -108,9 +105,9 @@ class Message:
                 addr=''
             else:
                 # address must match adress regex
-                if not email_address_re.match(addr):
+                if not email_address_re.match(addr.decode("utf-8")):
                     addr=''
-            addrs[i]=(self.getmailheader(name), addr)
+            addrs[i]=(self.getmailheader(name), addr.decode("utf-8"))
         return addrs
 
     def getSubject(self):
@@ -165,7 +162,7 @@ class Message:
                 'Attachments': attachments,
                 'WithHtml': len(parts['html']) > 0,
                 'WithText': len(parts['text']) > 0,
-                'Body': text_content.decode('utf8')
+                'Body': text_content
             }, indent=4, ensure_ascii=False)
 
             json_file.write(unicode(data))
@@ -192,7 +189,8 @@ class Message:
             self.text_content = ''
             for part in parts:
                 raw_content = part.get_payload(decode=True)
-                self.text_content += unicode(raw_content, str(self.getPartCharset(part)), "ignore").encode('utf8','replace')
+                charset = self.getPartCharset(part)
+                self.text_content += raw_content.decode(charset, "replace")
         return self.text_content
 
 
@@ -208,7 +206,7 @@ class Message:
             for part in parts:
                 raw_content = part.get_payload(decode=True)
                 charset = self.getPartCharset(part)
-                self.html_content += unicode(raw_content, str(charset), "ignore").encode('utf8','replace')
+                self.html_content += raw_content.decode(charset, "replace")
 
             m = re.search('<body[^>]*>(.+)<\/body>', self.html_content, re.S | re.I)
             if (m != None):
