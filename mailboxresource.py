@@ -10,10 +10,7 @@ import hashlib
 from message import Message
 import datetime
 
-
-
 class MailboxClient:
-    """Operations on a mailbox"""
 
     def __init__(self, host, port, username, password, remote_folder):
         self.mailbox = imaplib.IMAP4_SSL(host, port)
@@ -30,7 +27,7 @@ class MailboxClient:
         criterion = 'ALL'
 
         if days:
-            date = (datetime.date.today() - datetime.timedelta(days)).strftime("%d-%b-%Y")
+            date = (datetime.date.today() - datetime.timedelta(days)).strftime('%d-%b-%Y')
             criterion = '(SENTSINCE {date})'.format(date=date)
 
         typ, data = self.mailbox.search(None, criterion)
@@ -43,11 +40,9 @@ class MailboxClient:
 
         return (n_saved, n_exists)
 
-
     def cleanup(self):
         self.mailbox.close()
         self.mailbox.logout()
-
 
     def getEmailFolder(self, msg, data):
         if msg['Message-Id']:
@@ -61,10 +56,7 @@ class MailboxClient:
             if match:
                 year = match.group(1)
 
-
         return os.path.join(self.local_folder, year, foldername)
-
-
 
     def saveEmail(self, data):
         for response_part in data:
@@ -94,10 +86,7 @@ class MailboxClient:
                 except Exception as e:
                     # ex: Unsupported charset on decode
                     print(directory)
-                    if hasattr(e, 'strerror'):
-                        print("MailboxClient.saveEmail() failed:", e.strerror)
-                    else:
-                        print("MailboxClient.saveEmail() failed")
-                        print(e)
+                    print('MailboxClient.saveEmail() failed')
+                    print(e)
 
         return True
