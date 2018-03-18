@@ -165,7 +165,7 @@ class Message:
                 'Body': text_content
             }, indent=4, ensure_ascii=False)
 
-            json_file.write(unicode(data))
+            json_file.write(data)
 
             json_file.close()
 
@@ -197,7 +197,7 @@ class Message:
     def createTextFile(self, parts):
         utf8_content = self.getTextContent(parts)
         with open(os.path.join(self.directory, 'message.txt'), 'wb') as fp:
-            fp.write(utf8_content)
+            fp.write(bytearray(utf8_content, 'utf-8'))
 
     def getHtmlContent(self, parts):
         if not hasattr(self, 'html_content'):
@@ -219,12 +219,12 @@ class Message:
         utf8_content = self.getHtmlContent(parts)
         for img in embed:
             pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]))
-            path = os.path.join('attachments', img[1].encode('utf8','replace'))
+            path = os.path.join('attachments', img[1])
             utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
 
 
-        subject = self.getSubject().encode('utf8','replace')
-        fromname = self.getFrom()[0].encode('utf8','replace')
+        subject = self.getSubject()
+        fromname = self.getFrom()[0]
 
         utf8_content = """<!doctype html>
 <html>
@@ -239,7 +239,7 @@ class Message:
 </html>""" % (cgi.escape(fromname), cgi.escape(subject), utf8_content)
 
         with open(os.path.join(self.directory, 'message.html'), 'wb') as fp:
-            fp.write(utf8_content)
+            fp.write(bytearray(utf8_content, 'utf-8'))
 
 
     def sanitizeFilename(self, filename):

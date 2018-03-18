@@ -77,9 +77,22 @@ class MailboxClient:
 
                 os.makedirs(directory)
 
-                message = Message(directory, msg)
-                message.createRawFile(data[0][1])
-                message.createMetaFile()
-                message.extractAttachments()
+                try:
+                    message = Message(directory, msg)
+                    message.createRawFile(data[0][1])
+                    message.createMetaFile()
+                    message.extractAttachments()
+
+                    if self.wkhtmltopdf:
+                        message.createPdfFile(self.wkhtmltopdf)
+
+                except Exception as e:
+                    # ex: Unsupported charset on decode
+                    print(directory)
+                    if hasattr(e, 'strerror'):
+                        print("MailboxClient.saveEmail() failed:", e.strerror)
+                    else:
+                        print("MailboxClient.saveEmail() failed")
+                        print(e)
 
         return True
