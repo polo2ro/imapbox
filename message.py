@@ -85,13 +85,17 @@ class Message:
             return header_text.encode('ascii', 'replace').decode('ascii')
         else:
             for i, (text, charset) in enumerate(headers):
-                headers[i]=str(text)
+                headers[i]=text
+                if charset:
+                    headers[i]=str(text, charset)
+                else:
+                    headers[i]=str(text)
             return u"".join(headers)
 
 
-    def getmailaddresses(self, name):
+    def getmailaddresses(self, prop):
         """retrieve From:, To: and Cc: addresses"""
-        addrs=email.utils.getaddresses(self.msg.get_all(name, []))
+        addrs=email.utils.getaddresses(self.msg.get_all(prop, []))
         for i, (name, addr) in enumerate(addrs):
             if not name and addr:
                 # only one string! Is it the address or is it the name ?
