@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-#-*- coding:utf-8 -*-
+# coding:utf-8
 
-# import mailboxresource
 from mailboxresource import MailboxClient
 import argparse
 from six.moves import configparser
@@ -29,7 +28,6 @@ def load_configuration(args):
         if config.has_option('imapbox', 'wkhtmltopdf'):
             options['wkhtmltopdf'] = os.path.expanduser(config.get('imapbox', 'wkhtmltopdf'))
 
-
     for section in config.sections():
 
         if ('imapbox' == section):
@@ -54,7 +52,7 @@ def load_configuration(args):
         if config.has_option(section, 'remote_folder'):
             account['remote_folder'] = config.get(section, 'remote_folder')
 
-        if (None == account['host'] or None == account['username'] or None == account['password']):
+        if (account['host'] is None or account['username'] is None oraccount['password'] is None):
             continue
 
         options['accounts'].append(account)
@@ -69,8 +67,6 @@ def load_configuration(args):
         options['wkhtmltopdf'] = args.wkhtmltopdf
 
     return options
-
-
 
 
 def main():
