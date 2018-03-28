@@ -1,3 +1,21 @@
+## Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+## Sublime Text
+*.sublime*
+
+## Python
 __pycache__/
 *.py[cod]
-.tags
+*$py.class
