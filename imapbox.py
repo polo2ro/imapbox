@@ -52,7 +52,7 @@ def load_configuration(args):
         if config.has_option(section, 'remote_folder'):
             account['remote_folder'] = config.get(section, 'remote_folder')
 
-        if (account['host'] is None or account['username'] is None oraccount['password'] is None):
+        if (account['host'] is None or account['username'] is None or account['password'] is None):
             continue
 
         options['accounts'].append(account)
@@ -82,11 +82,11 @@ def main():
 
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
 
-        mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-        stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
+        mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'])
+        stats = mailbox.copy_emails(options['days'], options['local_folder'], account['remote_folder'], options['wkhtmltopdf'])
         mailbox.cleanup()
 
-        print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
+        print('{}/{}: {} emails created, {} emails already existed'.format(account['username'], account['remote_folder'], stats[0], stats[1]))
 
 
 if __name__ == '__main__':
