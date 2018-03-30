@@ -78,40 +78,40 @@ class Message:
     def getmailheader(self, header_text, default="ascii"):
         """Decode header_text if needed"""
         try:
-            headers=decode_header(header_text)
+            headers = decode_header(header_text)
         except email.Errors.HeaderParseError:
             # This already append in email.base64mime.decode()
             # instead return a sanitized ascii string
             return header_text.encode('ascii', 'replace').decode('ascii')
         else:
             for i, (text, charset) in enumerate(headers):
-                headers[i]=text
+                headers[i] = text
                 if charset:
-                    headers[i]=str(text, charset)
+                    headers[i] = str(text, charset)
                 else:
-                    headers[i]=str(text)
+                    headers[i] = str(text)
             return u"".join(headers)
 
 
     def getmailaddresses(self, prop):
         """retrieve From:, To: and Cc: addresses"""
-        addrs=email.utils.getaddresses(self.msg.get_all(prop, []))
+        addrs = email.utils.getaddresses(self.msg.get_all(prop, []))
         for i, (name, addr) in enumerate(addrs):
             if not name and addr:
                 # only one string! Is it the address or is it the name ?
                 # use the same for both and see later
-                name=addr
+                name = addr
 
             try:
                 # address must be ascii only
-                addr=addr.encode('ascii')
+                addr = addr.encode('ascii')
             except UnicodeError:
-                addr=''
+                addr = ''
             else:
                 # address must match adress regex
                 if not email_address_re.match(addr.decode("utf-8")):
-                    addr=''
-            addrs[i]=(self.getmailheader(name), addr.decode("utf-8"))
+                    addr = ''
+            addrs[i] = (self.getmailheader(name), addr.decode("utf-8"))
         return addrs
 
     def getSubject(self):
@@ -136,8 +136,8 @@ class Message:
         return (rfc2822, iso8601)
 
     def createMetaFile(self):
-        tos=self.getmailaddresses('to')
-        ccs=self.getmailaddresses('cc')
+        tos = self.getmailaddresses('to')
+        ccs = self.getmailaddresses('cc')
 
         parts = self.getParts()
         attachments = []
@@ -157,12 +157,12 @@ class Message:
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
                 'Id': self.msg['Message-Id'],
-                'Subject' : self.getSubject(),
-                'From' : self.getFrom(),
-                'To' : tos,
-                'Cc' : ccs,
-                'Date' : rfc2822,
-                'Utc' : iso8601,
+                'Subject': self.getSubject(),
+                'From': self.getFrom(),
+                'To': tos,
+                'Cc': ccs,
+                'Date': rfc2822,
+                'Utc': iso8601,
                 'Attachments': attachments,
                 'WithHtml': len(parts['html']) > 0,
                 'WithText': len(parts['text']) > 0,
@@ -173,20 +173,15 @@ class Message:
 
             json_file.close()
 
-
-
-
     def createRawFile(self, data):
         f = gzip.open('%s/raw.eml.gz' %(self.directory), 'wb')
         f.write(data)
         f.close()
 
-
     def getPartCharset(self, part):
         if part.get_content_charset() is None:
             return chardet.detect(str(part))['encoding']
         return part.get_content_charset()
-
 
     def getTextContent(self, parts):
         if not hasattr(self, 'text_content'):
@@ -196,7 +191,6 @@ class Message:
                 charset = self.getPartCharset(part)
                 self.text_content += raw_content.decode(charset, "replace")
         return self.text_content
-
 
     def createTextFile(self, parts):
         utf8_content = self.getTextContent(parts)
@@ -217,7 +211,6 @@ class Message:
                 self.html_content = m.group(1)
 
         return self.html_content
-
 
     def createHtmlFile(self, parts, embed):
         utf8_content = self.getHtmlContent(parts)
