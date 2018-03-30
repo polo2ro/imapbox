@@ -2,12 +2,14 @@
 
 from __future__ import print_function
 
-import imaplib, email
-import re
 import os
+import re
+import email
+import imaplib
 import hashlib
-from message import Message
 import datetime
+from message import Message
+
 
 class MailboxClient:
 
