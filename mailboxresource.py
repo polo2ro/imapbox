@@ -21,10 +21,9 @@ class MailboxClient:
         except imaplib.IMAP4.error:
             print('Unable to login to: ', username)
 
-    def copy_emails(self, days, local_folder, wkhtmltopdf):
-
-        n_saved = 0
-        n_exists = 0
+    def copy_emails(self, days, local_folder, remote_folder, wkhtmltopdf):
+        t_saved = 0
+        t_existed = 0
 
         self.local_folder = local_folder
         self.wkhtmltopdf = wkhtmltopdf
@@ -34,15 +33,34 @@ class MailboxClient:
             date = (datetime.date.today() - datetime.timedelta(days)).strftime('%d-%b-%Y')
             criterion = '(SENTSINCE {date})'.format(date=date)
 
-        typ, data = self.mailbox.search(None, criterion)
+        if remote_folder == 'ALL':
+            for i in self.mailbox.list()[1]:
+                folder = i.decode().split(' "/" ')[1]
+                n_saved, n_existed = self.fetch_emails(folder, criterion)
+                t_saved += n_saved
+                t_existed += n_existed
+        else:
+            n_saved, n_existed = self.fetch_emails(remote_folder, criterion)
+            t_saved += n_saved
+            t_existed += n_existed
+
+        return (t_saved, t_existed)
+
+    def fetch_emails(self, folder, criterion):
+        n_saved = 0
+        n_existed = 0
+        n_total = 0
+        self.mailbox.select(folder, readonly=True)
+        status, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
-            typ, data = self.mailbox.fetch(num, '(RFC822)')
+            status, data = self.mailbox.fetch(num, '(RFC822)')
             if self.saveEmail(data):
                 n_saved += 1
             else:
-                n_exists += 1
-
-        return (n_saved, n_exists)
+                n_existed += 1
+            n_total = len(num)
+        print('{}/{} - {}/{}/{}'.format(self.username, folder.replace('"', ''), n_saved, n_existed, n_total))
+        return (n_saved, n_existed)
 
     def cleanup(self):
         self.mailbox.close()
