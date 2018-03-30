@@ -13,10 +13,13 @@ from message import Message
 
 class MailboxClient:
 
-    def __init__(self, host, port, username, password, remote_folder):
+    def __init__(self, host, port, username, password):
+        self.username = username
         self.mailbox = imaplib.IMAP4_SSL(host, port)
-        self.mailbox.login(username, password)
-        self.mailbox.select(remote_folder, readonly=True)
+        try:
+            self.mailbox.login(username, password)
+        except imaplib.IMAP4.error:
+            print('Unable to login to: ', username)
 
     def copy_emails(self, days, local_folder, wkhtmltopdf):
 
