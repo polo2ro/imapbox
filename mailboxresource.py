@@ -88,7 +88,8 @@ class MailboxClient:
 
     def get_email_folder(self, msg, data):
         if msg['Message-Id']:
-            foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
+            foldername = re.sub('[^a-zA-Z0-9_\-\.\s]+', '', msg['Message-Id'])
+            foldername = foldername.strip()
         else:
             foldername = hashlib.sha3_256(data).hexdigest()
 
