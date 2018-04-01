@@ -90,7 +90,7 @@ class MailboxClient:
         if msg['Message-Id']:
             foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
         else:
-            foldername = hashlib.sha224(data).hexdigest()
+            foldername = hashlib.sha3_256(data).hexdigest()
 
         year = 'None'
         if msg['Date']:
