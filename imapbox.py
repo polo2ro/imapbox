@@ -121,7 +121,7 @@ def main():
         )
 
         mailbox = MailboxClient(**account)
-        stats = mailbox.copy_emails(options['days'], options['local_folder'])
+        stats = mailbox.fetch_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
 
         logging.info(

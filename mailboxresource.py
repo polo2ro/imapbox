@@ -32,7 +32,7 @@ class MailboxClient:
         except imaplib.IMAP4.error:
             print('Unable to login to: ', self.username)
 
-    def copy_emails(self, days, local_folder):
+    def fetch_emails(self, days, local_folder):
         self.days = days
         self.local_folder = local_folder
         self.saved = 0
@@ -47,21 +47,23 @@ class MailboxClient:
         if self.remote_folder == 'ALL':
             for i in self.mailbox.list()[1]:
                 folder = i.decode().split(' "/" ')[1]
-                n_saved, n_existed = self.fetch_emails(folder, criterion)
+                self.copy_emails(folder, criterion)
         else:
-            n_saved, n_existed = self.fetch_emails(self.remote_folder, criterion)
+            self.copy_emails(self.remote_folder, criterion)
 
         return (self.saved, self.existed)
 
-    def fetch_emails(self, folder, criterion):
+    def copy_emails(self, folder, criterion):
         n_saved = 0
         n_existed = 0
         n_total = 0
+
         self.mailbox.select(folder, readonly=True)
+
         status, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
             status, data = self.mailbox.fetch(num, '(RFC822)')
-            if self.saveEmail(data):
+            if self.save_email(data):
                 n_saved += 1
             else:
                 n_existed += 1
@@ -75,7 +77,7 @@ class MailboxClient:
         self.mailbox.close()
         self.mailbox.logout()
 
-    def getEmailFolder(self, msg, data):
+    def get_email_folder(self, msg, data):
         if msg['Message-Id']:
             foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
         else:
@@ -89,7 +91,7 @@ class MailboxClient:
 
         return os.path.join(self.local_folder, year, foldername)
 
-    def saveEmail(self, data):
+    def save_email(self, data):
         for response_part in data:
             if isinstance(response_part, tuple):
                 try:
@@ -98,7 +100,7 @@ class MailboxClient:
                 except AttributeError:
                     msg = email.message_from_string(response_part[1])
 
-                directory = self.getEmailFolder(msg, data[0][1])
+                directory = self.get_email_folder(msg, data[0][1])
 
                 if os.path.exists(directory):
                     return False
@@ -114,7 +116,7 @@ class MailboxClient:
                 except Exception as e:
                     # ex: Unsupported charset on decode
                     print(directory)
-                    print('MailboxClient.saveEmail() failed')
+                    print('MailboxClient.save_email() failed')
                     print(e)
 
         return True
