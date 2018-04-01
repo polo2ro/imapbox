@@ -126,7 +126,7 @@ def main():
         mailbox.cleanup()
 
         logging.info(
-            '[%s/%s] %s emails created, %s emails already existed;',
+            '[%s/%s] %s emails downloaded, %s emails already existed;',
             account['name'],
             account['remote_folder'],
             stats[0],

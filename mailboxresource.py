@@ -97,6 +97,7 @@ class MailboxClient:
 
         year = 'None'
         if msg['Date']:
+            # TODO: replace with datetime.strptime()
             match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
             if match:
                 year = match.group(1)
