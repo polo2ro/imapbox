@@ -41,7 +41,8 @@ class MailboxClient:
         criterion = 'ALL'
 
         if days:
-            date = (datetime.date.today() - datetime.timedelta(days)).strftime('%d-%b-%Y')
+            date = datetime.date.today() - datetime.timedelta(days)
+            date = date.strftime('%d-%b-%Y')
             criterion = '(SENTSINCE {date})'.format(date=date)
 
         if self.remote_folder == 'ALL':
