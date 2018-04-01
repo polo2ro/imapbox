@@ -12,8 +12,8 @@ def load_configuration(args):
 
     options = {
         'days': config.get('imapbox', 'days', fallback=args.days),
-        'folder': os.path.expanduser(
-            config.get('imapbox', 'folder', fallback=args.folder)
+        'local_folder': os.path.expanduser(
+            config.get('imapbox', 'local_folder', fallback=args.local_folder)
         ),
         'accounts': []
     }
@@ -78,8 +78,8 @@ def main():
     )
     argparser.add_argument(
         '-l',
-        dest='folder',
-        help='Local folder where to create the email folders',
+        dest='local_folder',
+        help='Local folder where to dump emails',
         default='./archive'
     )
     argparser.add_argument(
