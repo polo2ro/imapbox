@@ -63,13 +63,14 @@ class MailboxClient:
         self.mailbox.select(folder, readonly=True)
 
         status, data = self.mailbox.search(None, criterion)
-        for num in data[0].split():
+        msgnums = data[0].split()
+        n_total = len(msgnums)
+        for num in msgnums:
             status, data = self.mailbox.fetch(num, '(RFC822)')
             if self.save_email(data):
                 n_saved += 1
             else:
                 n_existed += 1
-            n_total = len(num)
 
         logging.info(
             '[%s/%s] - saved: %s, existed: %s, total: %s;',
