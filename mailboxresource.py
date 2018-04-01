@@ -81,7 +81,6 @@ class MailboxClient:
 
         self.saved += n_saved
         self.existed += n_existed
-        return (n_saved, n_existed)
 
     def cleanup(self):
         self.mailbox.close()
