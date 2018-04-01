@@ -124,7 +124,7 @@ class MailboxClient:
                     message = Message(directory, msg)
                     message.createRawFile(data[0][1])
                     message.createMetaFile()
-                    message.extractAttachments()
+                    message.extract_attachments()
 
                 except Exception as e:
                     # ex: Unsupported charset on decode

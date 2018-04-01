@@ -292,7 +292,7 @@ class Message:
         return self.message_parts
 
 
-    def extractAttachments(self):
+    def extract_attachments(self):
         message_parts = self.getParts()
 
         if message_parts['text']:
