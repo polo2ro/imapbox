@@ -51,12 +51,12 @@ def main():
     argparser.add_argument(
         '-host',
         dest='host',
-        help='IMAP host'
+        help='IMAP server host name'
     )
     argparser.add_argument(
         '-port',
         dest='port',
-        help='IMAP port',
+        help='IMAP server port',
         type=int,
         default=993
     )
@@ -91,7 +91,7 @@ def main():
     argparser.add_argument(
         '-d',
         dest='days',
-        help='Local folder where to create the email folders',
+        help='How many days of correspondence to back up',
         type=int,
         default=None
     )
