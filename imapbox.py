@@ -114,8 +114,8 @@ def main():
             )
         )
 
-        mailbox = MailboxClient(account, options)
-        stats = mailbox.copy_emails()
+        mailbox = MailboxClient(**account)
+        stats = mailbox.copy_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
 
         print('{}/{}: {} emails created, {} emails already existed'.format(
