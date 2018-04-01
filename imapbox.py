@@ -33,7 +33,7 @@ def load_configuration(args):
             'port': section.get('port', args.port),
             'username': section.get('username', args.username),
             'password': section.get('password', args.password),
-            'imap_folder': section.get('imap_folder', args.imap_folder)
+            'remote_folder': section.get('remote_folder', args.remote_folder)
         }
 
         if (account['host'] is None or account['username'] is None or account['password'] is None):
@@ -84,7 +84,7 @@ def main():
     )
     argparser.add_argument(
         '-r',
-        dest='imap_folder',
+        dest='remote_folder',
         help='Remote IMAP folder that should be backed up',
         default='INBOX'
     )
@@ -108,7 +108,7 @@ def main():
 
         print('{}/{} (on {}:{})'.format(
             account['name'],
-            account['imap_folder'],
+            account['remote_folder'],
             account['host'],
             account['port']
             )
@@ -120,7 +120,7 @@ def main():
 
         print('{}/{}: {} emails created, {} emails already existed'.format(
             account['name'],
-            account['imap_folder'],
+            account['remote_folder'],
             stats[0],
             stats[1]
             )
