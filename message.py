@@ -310,13 +310,3 @@ class Message:
                     payload = afile[0].get_payload(decode=True)
                     if payload:
                         fp.write(payload)
-
-
-    def createPdfFile(self, wkhtmltopdf):
-        if has_pdfkit:
-            html_path = os.path.join(self.directory, 'message.html')
-            pdf_path = os.path.join(self.directory, 'message.pdf')
-            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
-            pdfkit.from_file(html_path, pdf_path, configuration=config)
-        else:
-            print("Couldn't create PDF message, since \"pdfkit\" module isn't installed.")
