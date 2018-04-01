@@ -12,10 +12,13 @@ Icon
 .Spotlight-V100
 .Trashes
 
-## Sublime Text
-*.sublime*
-
 ## Python
 __pycache__/
 *.py[cod]
 *$py.class
+
+## Sublime Text
+*.sublime*
+
+## IMAPBox
+archive
