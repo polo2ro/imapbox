@@ -1,92 +1,130 @@
-#!/usr/bin/env python
-# coding:utf-8
+#!/usr/bin/env python3
 
-from mailboxresource import MailboxClient
-import argparse
-from six.moves import configparser
 import os
+import argparse
+import configparser
+from mailboxresource import MailboxClient
 
 
 def load_configuration(args):
     config = configparser.ConfigParser(allow_no_value=True)
-    config.read(['config.cfg', '/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')])
+    config.read(os.path.expanduser(args.config_path))
 
     options = {
-        'days': None,
-        'local_folder': '.',
-        'wkhtmltopdf': None,
+        'days': config.get('imapbox', 'days', fallback=args.days),
+        'folder': os.path.expanduser(
+            config.get('imapbox', 'folder', fallback=args.folder)
+        ),
         'accounts': []
     }
 
-    if (config.has_section('imapbox')):
-        if config.has_option('imapbox', 'days'):
-            options['days'] = config.getint('imapbox', 'days')
+    for section_name in config.sections():
 
-        if config.has_option('imapbox', 'local_folder'):
-            options['local_folder'] = os.path.expanduser(config.get('imapbox', 'local_folder'))
-
-        if config.has_option('imapbox', 'wkhtmltopdf'):
-            options['wkhtmltopdf'] = os.path.expanduser(config.get('imapbox', 'wkhtmltopdf'))
-
-    for section in config.sections():
-
-        if ('imapbox' == section):
+        if (section_name == 'imapbox'):
             continue
 
-        if (args.specific_account and (args.specific_account != section)):
+        if (args.account and (args.account != section_name)):
             continue
 
+        section = config[section_name]
         account = {
-            'name': section,
-            'remote_folder': 'INBOX',
-            'port': 993
+            'name': section_name,
+            'host': section.get('host', args.host),
+            'port': section.get('port', args.port),
+            'username': section.get('username', args.username),
+            'password': section.get('password', args.password),
+            'imap_folder': section.get('imap_folder', args.imap_folder)
         }
-
-        account['host'] = config.get(section, 'host')
-        if config.has_option(section, 'port'):
-            account['port'] = config.get(section, 'port')
-
-        account['username'] = config.get(section, 'username')
-        account['password'] = config.get(section, 'password')
-
-        if config.has_option(section, 'remote_folder'):
-            account['remote_folder'] = config.get(section, 'remote_folder')
 
         if (account['host'] is None or account['username'] is None or account['password'] is None):
             continue
 
         options['accounts'].append(account)
 
-    if (args.local_folder):
-        options['local_folder'] = args.local_folder
-
-    if (args.days):
-        options['days'] = args.days
-
-    if (args.wkhtmltopdf):
-        options['wkhtmltopdf'] = args.wkhtmltopdf
-
     return options
 
 
 def main():
-    argparser = argparse.ArgumentParser(description="Dump a IMAP folder into .eml files")
-    argparser.add_argument('-l', dest='local_folder', help="Local folder where to create the email folders")
-    argparser.add_argument('-d', dest='days', help="Local folder where to create the email folders", type=int)
-    argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
-    argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
+    argparser = argparse.ArgumentParser(
+        description='Export messages into .eml files using IMAP protocol'
+    )
+    argparser.add_argument(
+        '-host',
+        dest='host',
+        help='IMAP host'
+    )
+    argparser.add_argument(
+        '-port',
+        dest='port',
+        help='IMAP port',
+        type=int,
+        default=993
+    )
+    argparser.add_argument(
+        '-u',
+        dest='username',
+        help='Username to access email account'
+    )
+    argparser.add_argument(
+        '-p',
+        dest='password',
+        help='Password to access email account'
+    )
+    argparser.add_argument(
+        '-c',
+        dest='config_path',
+        help='Path to configuration file',
+        default='config.ini'
+    )
+    argparser.add_argument(
+        '-l',
+        dest='folder',
+        help='Local folder where to create the email folders',
+        default='./archive'
+    )
+    argparser.add_argument(
+        '-r',
+        dest='imap_folder',
+        help='Remote IMAP folder that should be backed up',
+        default='INBOX'
+    )
+    argparser.add_argument(
+        '-d',
+        dest='days',
+        help='Local folder where to create the email folders',
+        type=int,
+        default=None
+    )
+    argparser.add_argument(
+        '-a',
+        dest='account',
+        help='Select a specific account to backup',
+        default=None
+    )
     args = argparser.parse_args()
     options = load_configuration(args)
 
     for account in options['accounts']:
 
-        print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
+        print('{}/{} (on {}:{})'.format(
+            account['name'],
+            account['imap_folder'],
+            account['host'],
+            account['port']
+            )
+        )
 
-        mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'])
-        stats = mailbox.copy_emails(options['days'], options['local_folder'], account['remote_folder'], options['wkhtmltopdf'])
+        mailbox = MailboxClient(account, options)
+        stats = mailbox.copy_emails()
         mailbox.cleanup()
 
-        print('{}/{}: {} emails created, {} emails already existed'.format(account['username'], account['remote_folder'], stats[0], stats[1]))
+        print('{}/{}: {} emails created, {} emails already existed'.format(
+            account['name'],
+            account['imap_folder'],
+            stats[0],
+            stats[1]
+            )
+        )
 
 
 if __name__ == '__main__':
