@@ -13,19 +13,26 @@ from message import Message
 
 class MailboxClient:
 
-    def __init__(self, host, port, username, password):
+    def __init__(self, name, host, port, username, password, remote_folder):
+        self.name = name
+        self.host = host
+        self.port = port
         self.username = username
-        self.mailbox = imaplib.IMAP4_SSL(host, port)
-        try:
-            self.mailbox.login(username, password)
-        except imaplib.IMAP4.error:
-            print('Unable to login to: ', username)
+        self.password = password
+        self.remote_folder = remote_folder
 
-    def copy_emails(self, days, local_folder, remote_folder, wkhtmltopdf):
+        self.mailbox = imaplib.IMAP4_SSL(self.host, self.port)
+        try:
+            self.mailbox.login(self.username, self.password)
+        except imaplib.IMAP4.error:
+            print('Unable to login to: ', self.username)
+
+    def copy_emails(self, days, local_folder):
+        self.days = days
+        self.local_folder = local_folder
+
         t_saved = 0
         t_existed = 0
-
-        self.local_folder = local_folder
         self.wkhtmltopdf = wkhtmltopdf
         criterion = 'ALL'
 
@@ -33,14 +40,14 @@ class MailboxClient:
             date = (datetime.date.today() - datetime.timedelta(days)).strftime('%d-%b-%Y')
             criterion = '(SENTSINCE {date})'.format(date=date)
 
-        if remote_folder == 'ALL':
+        if self.remote_folder == 'ALL':
             for i in self.mailbox.list()[1]:
                 folder = i.decode().split(' "/" ')[1]
                 n_saved, n_existed = self.fetch_emails(folder, criterion)
                 t_saved += n_saved
                 t_existed += n_existed
         else:
-            n_saved, n_existed = self.fetch_emails(remote_folder, criterion)
+            n_saved, n_existed = self.fetch_emails(self.remote_folder, criterion)
             t_saved += n_saved
             t_existed += n_existed
 
@@ -104,7 +111,6 @@ class MailboxClient:
 
                     if self.wkhtmltopdf:
                         message.createPdfFile(self.wkhtmltopdf)
-
                 except Exception as e:
                     # ex: Unsupported charset on decode
                     print(directory)
