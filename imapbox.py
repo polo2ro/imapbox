@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 
 import os
+import logging
 import argparse
 import configparser
 from mailboxresource import MailboxClient
+
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 
 def load_configuration(args):
@@ -106,24 +112,24 @@ def main():
 
     for account in options['accounts']:
 
-        print('{}/{} (on {}:{})'.format(
+        logging.info(
+            '[%s/%s] start email fetching from %s:%s;',
             account['name'],
             account['remote_folder'],
             account['host'],
             account['port']
-            )
         )
 
         mailbox = MailboxClient(**account)
         stats = mailbox.copy_emails(options['days'], options['local_folder'])
         mailbox.cleanup()
 
-        print('{}/{}: {} emails created, {} emails already existed'.format(
+        logging.info(
+            '[%s/%s] %s emails created, %s emails already existed;',
             account['name'],
             account['remote_folder'],
             stats[0],
             stats[1]
-            )
         )
 
 

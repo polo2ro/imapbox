@@ -7,8 +7,14 @@ import re
 import email
 import imaplib
 import hashlib
+import logging
 import datetime
 from message import Message
+
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 
 class MailboxClient:
@@ -65,7 +71,7 @@ class MailboxClient:
             else:
                 n_existed += 1
             n_total = len(num)
-        print('{}/{} - {}/{}/{}'.format(self.username, folder.replace('"', ''), n_saved, n_existed, n_total))
+        logging.info('[%s/%s] - saved: %s, existed: %s, total: %s;', self.username, folder.replace('"', ''), n_saved, n_existed, n_total)
         return (n_saved, n_existed)
 
     def cleanup(self):
