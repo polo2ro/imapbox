@@ -33,7 +33,6 @@ class MailboxClient:
 
         t_saved = 0
         t_existed = 0
-        self.wkhtmltopdf = wkhtmltopdf
         criterion = 'ALL'
 
         if days:
@@ -109,8 +108,6 @@ class MailboxClient:
                     message.createMetaFile()
                     message.extractAttachments()
 
-                    if self.wkhtmltopdf:
-                        message.createPdfFile(self.wkhtmltopdf)
                 except Exception as e:
                     # ex: Unsupported charset on decode
                     print(directory)
