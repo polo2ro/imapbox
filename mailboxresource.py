@@ -115,10 +115,10 @@ class MailboxClient:
 
                 directory = self.get_email_folder(msg, data[0][1])
 
-                if os.path.exists(directory):
+                try:
+                    os.makedirs(directory)
+                except FileExistsError:
                     return False
-
-                os.makedirs(directory)
 
                 try:
                     message = Message(directory, msg)

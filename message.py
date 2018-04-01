@@ -303,10 +303,14 @@ class Message:
 
         if message_parts['files']:
             attdir = os.path.join(self.directory, 'attachments')
-            if not os.path.exists(attdir):
+
+            try:
                 os.makedirs(attdir)
-            for afile in message_parts['files']:
-                with open(os.path.join(attdir, afile[1]), 'wb') as fp:
-                    payload = afile[0].get_payload(decode=True)
+            except FileExistsError:
+                pass
+
+            for file in message_parts['files']:
+                with open(os.path.join(attdir, file[1]), 'wb') as fp:
+                    payload = file[0].get_payload(decode=True)
                     if payload:
                         fp.write(payload)
