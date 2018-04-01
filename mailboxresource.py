@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 import os
 import re
 import email
@@ -28,6 +26,7 @@ class MailboxClient:
         self.remote_folder = remote_folder
 
         self.mailbox = imaplib.IMAP4_SSL(self.host, self.port)
+
         try:
             self.mailbox.login(self.username, self.password)
         except imaplib.IMAP4.error:
@@ -36,9 +35,9 @@ class MailboxClient:
     def copy_emails(self, days, local_folder):
         self.days = days
         self.local_folder = local_folder
+        self.saved = 0
+        self.existed = 0
 
-        t_saved = 0
-        t_existed = 0
         criterion = 'ALL'
 
         if days:
@@ -49,14 +48,10 @@ class MailboxClient:
             for i in self.mailbox.list()[1]:
                 folder = i.decode().split(' "/" ')[1]
                 n_saved, n_existed = self.fetch_emails(folder, criterion)
-                t_saved += n_saved
-                t_existed += n_existed
         else:
             n_saved, n_existed = self.fetch_emails(self.remote_folder, criterion)
-            t_saved += n_saved
-            t_existed += n_existed
 
-        return (t_saved, t_existed)
+        return (self.saved, self.existed)
 
     def fetch_emails(self, folder, criterion):
         n_saved = 0
@@ -72,6 +67,8 @@ class MailboxClient:
                 n_existed += 1
             n_total = len(num)
         logging.info('[%s/%s] - saved: %s, existed: %s, total: %s;', self.username, folder.replace('"', ''), n_saved, n_existed, n_total)
+        self.saved += n_saved
+        self.existed += n_existed
         return (n_saved, n_existed)
 
     def cleanup(self):
