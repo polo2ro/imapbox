@@ -68,7 +68,16 @@ class MailboxClient:
             else:
                 n_existed += 1
             n_total = len(num)
-        logging.info('[%s/%s] - saved: %s, existed: %s, total: %s;', self.username, folder.replace('"', ''), n_saved, n_existed, n_total)
+
+        logging.info(
+            '[%s/%s] - saved: %s, existed: %s, total: %s;',
+            self.username,
+            folder.replace('"', ''),
+            n_saved,
+            n_existed,
+            n_total
+        )
+
         self.saved += n_saved
         self.existed += n_existed
         return (n_saved, n_existed)
