@@ -7,6 +7,7 @@ import imaplib
 import hashlib
 import logging
 import datetime
+from email import policy
 from message import Message
 
 logging.basicConfig(
@@ -105,31 +106,27 @@ class MailboxClient:
         return os.path.join(self.local_folder, year, foldername)
 
     def save_email(self, data):
-        for response_part in data:
-            if isinstance(response_part, tuple):
-                try:
-                    # See: https://docs.python.org/3/howto/unicode.html#python-s-unicode-support
-                    msg = email.message_from_string(response_part[1].decode('utf-8', 'ignore'))
-                except AttributeError:
-                    msg = email.message_from_string(response_part[1])
+        body = data[0][1]
+        try:
+            message = email.message_from_bytes(body, policy=policy.default)
+        except Exception as e:
+            print(e)
 
-                directory = self.get_email_folder(msg, data[0][1])
+        directory = self.get_email_folder(message, body)
 
-                try:
-                    os.makedirs(directory)
-                except FileExistsError:
-                    return False
+        try:
+            os.makedirs(directory)
+        except FileExistsError:
+            return False
 
-                try:
-                    message = Message(directory, msg)
-                    message.createRawFile(data[0][1])
-                    message.createMetaFile()
-                    message.extract_attachments()
+        try:
+            msg = Message(directory, message)
+            msg.create_raw_file(body)
+            msg.createMetaFile()
+            msg.extract_attachments()
 
-                except Exception as e:
-                    # ex: Unsupported charset on decode
-                    print(directory)
-                    print('MailboxClient.save_email() failed')
-                    print(e)
+        except Exception as e:
+            print('Faulty email: ', directory)
+            print(e)
 
         return True
