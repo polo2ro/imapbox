@@ -89,17 +89,17 @@ class MailboxClient:
         self.mailbox.close()
         self.mailbox.logout()
 
-    def get_email_folder(self, msg, data):
-        if msg['Message-Id']:
-            foldername = re.sub('[^a-zA-Z0-9_\-\.\s]+', '', msg['Message-Id'])
+    def get_email_folder(self, message, body):
+        if message['Message-Id']:
+            foldername = re.sub('[^a-zA-Z0-9_\-\.\s]+', '', message['Message-Id'])
             foldername = foldername.strip()
         else:
-            foldername = hashlib.sha3_256(data).hexdigest()
+            foldername = hashlib.sha3_256(body).hexdigest()
 
         year = 'None'
-        if msg['Date']:
-            # TODO: replace with datetime.strptime()
-            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
+        if message['Date']:
+            # TODO: replace with email.utils.parsedate()
+            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', message['Date'])
             if match:
                 year = match.group(1)
 
