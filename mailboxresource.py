@@ -11,6 +11,7 @@ from email import policy
 from message import Message
 
 logging.basicConfig(
+    filename='imapbox.log',
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%dТ%H:%M:%S%z',
     level=logging.INFO
