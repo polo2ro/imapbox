@@ -1,27 +1,17 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
+#!/usr/bin/env python3
 
-
-import email
-from email.utils import parseaddr
-from email.header import decode_header
-import re
-import os
-import json
 import io
-import mimetypes
-import chardet
-import gzip
+import os
+import re
 import cgi
+import json
+import gzip
 import time
+import email
 import pkgutil
-
-from six.moves import html_parser
-
-# import pdfkit if its loader is available
-has_pdfkit = pkgutil.find_loader('pdfkit') is not None
-if has_pdfkit: import pdfkit
-
+import chardet
+import mimetypes
+from html.parser import HTMLParser
 
 # email address REGEX matching the RFC 2822 spec
 # from perlfaq9
@@ -48,24 +38,25 @@ addr_spec=local  +  "\@"  +  domain
 email_address_re=re.compile('^'+addr_spec+'$')
 
 
-
-
-class MLStripper(html_parser.HTMLParser):
+class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
+
     def convert_charrefs(x):
         return x
+
     def handle_data(self, d):
         self.fed.append(d)
+
     def get_data(self):
         return ''.join(self.fed)
+
 
 def strip_tags(html):
     s = MLStripper()
     s.feed(html)
     return s.get_data()
-
 
 
 class Message:
@@ -78,7 +69,7 @@ class Message:
     def getmailheader(self, header_text, default="ascii"):
         """Decode header_text if needed"""
         try:
-            headers = decode_header(header_text)
+            headers = email.header.decode_header(header_text)
         except email.Errors.HeaderParseError:
             # This already append in email.base64mime.decode()
             # instead return a sanitized ascii string
@@ -92,39 +83,6 @@ class Message:
                     headers[i] = str(text)
             return u"".join(headers)
 
-
-    def getmailaddresses(self, prop):
-        """retrieve From:, To: and Cc: addresses"""
-        addrs = email.utils.getaddresses(self.msg.get_all(prop, []))
-        for i, (name, addr) in enumerate(addrs):
-            if not name and addr:
-                # only one string! Is it the address or is it the name ?
-                # use the same for both and see later
-                name = addr
-
-            try:
-                # address must be ascii only
-                addr = addr.encode('ascii')
-            except UnicodeError:
-                addr = ''
-            else:
-                # address must match adress regex
-                if not email_address_re.match(addr.decode("utf-8")):
-                    addr = ''
-            addrs[i] = (self.getmailheader(name), addr.decode("utf-8"))
-        return addrs
-
-    def getSubject(self):
-        if not hasattr(self, 'subject'):
-            self.subject = self.getmailheader(self.msg.get('Subject', ''))
-        return self.subject
-
-    def getFrom(self):
-        if not hasattr(self, 'from_'):
-            self.from_ = self.getmailaddresses('from')
-            self.from_ = ('', '') if not self.from_ else self.from_[0]
-        return self.from_
-
     def normalizeDate(self, datestr):
         t = email.utils.parsedate_tz(datestr)
         timeval = time.mktime(t[:-1])
@@ -136,10 +94,8 @@ class Message:
         return (rfc2822, iso8601)
 
     def createMetaFile(self):
-        tos = self.getmailaddresses('to')
-        ccs = self.getmailaddresses('cc')
 
-        parts = self.getParts()
+        parts = self.get_parts()
         attachments = []
         for afile in parts['files']:
             attachments.append(afile[1])
@@ -152,78 +108,70 @@ class Message:
             if parts['html']:
                 text_content = strip_tags(self.getHtmlContent(parts['html']))
 
-        rfc2822, iso8601 = self.normalizeDate(self.msg['Date'])
+        # Calendar items does not have a Date property
+        if self.msg['Date'] is not None:
+            rfc2822, iso8601 = self.normalizeDate(self.msg['Date'])
 
-        with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
-            data = json.dumps({
-                'Id': self.msg['Message-Id'],
-                'Subject': self.getSubject(),
-                'From': self.getFrom(),
-                'To': tos,
-                'Cc': ccs,
-                'Date': rfc2822,
-                'Utc': iso8601,
-                'Attachments': attachments,
-                'WithHtml': len(parts['html']) > 0,
-                'WithText': len(parts['text']) > 0,
-                'Body': text_content
-            }, indent=4, ensure_ascii=False)
+            with io.open('%s/metadata.json' % (self.directory), 'w', encoding='utf8') as json_file:
+                data = json.dumps({
+                    'Id': self.msg['Message-Id'].strip(),
+                    'Subject': self.msg['Subject'].strip(),
+                    'From': self.msg['From'],
+                    'To': self.msg['To'],
+                    'Cc': self.msg['Cc'],
+                    'Date': rfc2822,
+                    'Utc': iso8601,
+                    'Attachments': attachments,
+                    'WithHtml': len(parts['html']) > 0,
+                    'WithText': len(parts['text']) > 0,
+                    'Body': text_content
+                }, indent=4, ensure_ascii=False)
 
-            json_file.write(data)
+                json_file.write(data)
 
-            json_file.close()
+                json_file.close()
 
-    def createRawFile(self, data):
-        f = gzip.open('%s/raw.eml.gz' %(self.directory), 'wb')
+    def create_raw_file(self, data):
+        f = gzip.open('%s/raw.eml.gz' % (self.directory), 'wb')
         f.write(data)
         f.close()
-
-    def getPartCharset(self, part):
-        if part.get_content_charset() is None:
-            return chardet.detect(str(part))['encoding']
-        return part.get_content_charset()
 
     def getTextContent(self, parts):
         if not hasattr(self, 'text_content'):
             self.text_content = ''
             for part in parts:
-                raw_content = part.get_payload(decode=True)
-                charset = self.getPartCharset(part)
-                self.text_content += raw_content.decode(charset, "replace")
+                self.text_content += part.get_content()
         return self.text_content
 
     def createTextFile(self, parts):
-        utf8_content = self.getTextContent(parts)
-        with open(os.path.join(self.directory, 'message.txt'), 'wb') as fp:
-            fp.write(bytearray(utf8_content, 'utf-8'))
+        content = self.getTextContent(parts)
+        with open(os.path.join(self.directory, 'message.txt'), 'w', encoding='utf-8') as fp:
+            fp.write(content)
 
     def getHtmlContent(self, parts):
         if not hasattr(self, 'html_content'):
             self.html_content = ''
 
             for part in parts:
-                raw_content = part.get_payload(decode=True)
-                charset = self.getPartCharset(part)
-                self.html_content += raw_content.decode(charset, "replace")
+                self.html_content += part.get_content()
 
             m = re.search('<body[^>]*>(.+)<\/body>', self.html_content, re.S | re.I)
-            if (m != None):
+            if (m is not None):
                 self.html_content = m.group(1)
 
         return self.html_content
 
     def createHtmlFile(self, parts, embed):
-        utf8_content = self.getHtmlContent(parts)
+        content = self.getHtmlContent(parts)
         for img in embed:
             pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]))
             path = os.path.join('attachments', img[1])
-            utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
+            content = re.sub(pattern, 'src="%s"' % (path), content, 0, re.S | re.I)
 
+        subject = self.msg['subject']
+        fromname = self.msg['from']
 
-        subject = self.getSubject()
-        fromname = self.getFrom()[0]
-
-        utf8_content = """<!doctype html>
+        content = """<!doctype html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -233,18 +181,16 @@ class Message:
 <body>
 %s
 </body>
-</html>""" % (cgi.escape(fromname), cgi.escape(subject), utf8_content)
+</html>""" % (cgi.escape(fromname), cgi.escape(subject), content)
 
-        with open(os.path.join(self.directory, 'message.html'), 'wb') as fp:
-            fp.write(bytearray(utf8_content, 'utf-8'))
-
+        with open(os.path.join(self.directory, 'message.html'), 'w', encoding='utf-8') as fp:
+            fp.write(content)
 
     def sanitizeFilename(self, filename):
-        keepcharacters = (' ','.','_','-')
+        keepcharacters = (' ', '.', '_', '-')
         return "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
 
-
-    def getParts(self):
+    def get_parts(self):
         if not hasattr(self, 'message_parts'):
             counter = 1
             message_parts = {
@@ -254,15 +200,11 @@ class Message:
                 'files': []
             }
 
-
-
             for part in self.msg.walk():
                 # multipart/* are just containers
                 if part.get_content_maintype() == 'multipart':
                     continue
 
-                # Applications should really sanitize the given filename so that an
-                # email message can't be used to overwrite important files
                 filename = part.get_filename()
                 if not filename:
                     if part.get_content_type() == 'text/plain':
@@ -279,9 +221,11 @@ class Message:
                         ext = '.bin'
                     filename = 'part-%03d%s' % (counter, ext)
 
+                #print('ORIGINAL: ', filename)
                 filename = self.sanitizeFilename(filename)
+                #print('REPLACED: ', filename)
 
-                content_id =part.get('Content-Id')
+                content_id = part.get('Content-Id')
                 if (content_id):
                     content_id = content_id[1:][:-1]
                     message_parts['embed_images'].append((content_id, filename))
@@ -291,9 +235,8 @@ class Message:
             self.message_parts = message_parts
         return self.message_parts
 
-
     def extract_attachments(self):
-        message_parts = self.getParts()
+        message_parts = self.get_parts()
 
         if message_parts['text']:
             self.createTextFile(message_parts['text'])
