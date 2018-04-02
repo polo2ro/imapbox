@@ -1,98 +1,133 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
+#!/usr/bin/env python3
 
-from __future__ import print_function
-
-import imaplib, email
-import re
 import os
+import re
+import email
+import imaplib
 import hashlib
-from message import Message
+import logging
 import datetime
+from email import policy
+from message import Message
 
+logging.basicConfig(
+    filename='imapbox.log',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%dТ%H:%M:%S%z',
+    level=logging.INFO
+)
 
 
 class MailboxClient:
-    """Operations on a mailbox"""
 
-    def __init__(self, host, port, username, password, remote_folder):
-        self.mailbox = imaplib.IMAP4_SSL(host, port)
-        self.mailbox.login(username, password)
-        self.mailbox.select(remote_folder, readonly=True)
+    def __init__(self, name, host, port, username, password, remote_folder):
+        self.name = name
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.remote_folder = remote_folder
 
-    def copy_emails(self, days, local_folder, wkhtmltopdf):
+        self.mailbox = imaplib.IMAP4_SSL(self.host, self.port)
 
-        n_saved = 0
-        n_exists = 0
+        try:
+            self.mailbox.login(self.username, self.password)
+        except imaplib.IMAP4.error:
+            print('Unable to login to: ', self.username)
 
+    def fetch_emails(self, days, local_folder):
+        self.days = days
         self.local_folder = local_folder
-        self.wkhtmltopdf = wkhtmltopdf
+        self.saved = 0
+        self.existed = 0
+
         criterion = 'ALL'
 
         if days:
-            date = (datetime.date.today() - datetime.timedelta(days)).strftime("%d-%b-%Y")
+            date = datetime.date.today() - datetime.timedelta(days)
+            date = date.strftime('%d-%b-%Y')
             criterion = '(SENTSINCE {date})'.format(date=date)
 
-        typ, data = self.mailbox.search(None, criterion)
-        for num in data[0].split():
-            typ, data = self.mailbox.fetch(num, '(RFC822)')
-            if self.saveEmail(data):
+        if self.remote_folder == 'ALL':
+            for i in self.mailbox.list()[1]:
+                folder = i.decode().split(' "/" ')[1]
+                self.copy_emails(folder, criterion)
+        else:
+            self.copy_emails(self.remote_folder, criterion)
+
+        return (self.saved, self.existed)
+
+    def copy_emails(self, folder, criterion):
+        n_saved = 0
+        n_existed = 0
+        n_total = 0
+
+        self.mailbox.select(folder, readonly=True)
+
+        status, data = self.mailbox.search(None, criterion)
+        msgnums = data[0].split()
+        n_total = len(msgnums)
+        for num in msgnums:
+            status, data = self.mailbox.fetch(num, '(RFC822)')
+            if self.save_email(data):
                 n_saved += 1
             else:
-                n_exists += 1
+                n_existed += 1
 
-        return (n_saved, n_exists)
+        logging.info(
+            '[%s/%s] - saved: %s, existed: %s, total: %s;',
+            self.username,
+            folder.replace('"', ''),
+            n_saved,
+            n_existed,
+            n_total
+        )
 
+        self.saved += n_saved
+        self.existed += n_existed
 
     def cleanup(self):
         self.mailbox.close()
         self.mailbox.logout()
 
-
-    def getEmailFolder(self, msg, data):
-        if msg['Message-Id']:
-            foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
+    def get_email_folder(self, message, body):
+        if message['Message-Id']:
+            foldername = re.sub('[^a-zA-Z0-9_\-\.\s]+', '', message['Message-Id'])
+            foldername = foldername.strip()
         else:
-            foldername = hashlib.sha224(data).hexdigest()
+            foldername = hashlib.sha3_256(body).hexdigest()
 
         year = 'None'
-        if msg['Date']:
-            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
+        if message['Date']:
+            # TODO: replace with email.utils.parsedate()
+            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', message['Date'])
             if match:
                 year = match.group(1)
 
-
         return os.path.join(self.local_folder, year, foldername)
 
+    def save_email(self, data):
+        body = data[0][1]
+        try:
+            message = email.message_from_bytes(body, policy=policy.default)
+        except Exception as e:
+            print(e)
 
+        directory = self.get_email_folder(message, body)
 
-    def saveEmail(self, data):
-        for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_string(response_part[1].decode("utf-8"))
-                directory = self.getEmailFolder(msg, data[0][1])
+        try:
+            os.makedirs(directory)
+        except FileExistsError:
+            return False
 
-                if os.path.exists(directory):
-                    return False
+        try:
+            msg = Message(directory, message)
+            msg.create_raw_file(body)
+            msg.createMetaFile()
+            msg.extract_attachments()
 
-                os.makedirs(directory)
-
-                try:
-                    message = Message(directory, msg)
-                    message.createRawFile(data[0][1])
-                    message.createMetaFile()
-                    message.extractAttachments()
-
-                    if self.wkhtmltopdf:
-                        message.createPdfFile(self.wkhtmltopdf)
-
-                except Exception as e:
-                    # ex: Unsupported charset on decode
-                    print(directory)
-                    if hasattr(e, 'strerror'):
-                        print("MailboxClient.saveEmail() failed:", e.strerror)
-                    else:
-                        print("MailboxClient.saveEmail() failed")
-                        print(e)
+        except Exception as e:
+            print('Faulty email: ', directory)
+            print(e)
 
         return True
