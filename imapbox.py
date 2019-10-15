@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-# import mailboxresource
-from mailboxresource import MailboxClient
+from mailboxresource import save_emails, get_folder_fist
 import argparse
 from six.moves import configparser
 import os
@@ -86,12 +85,14 @@ def main():
 
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
 
-        mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-        stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
-        mailbox.cleanup()
-
-        print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
-
+        if account['remote_folder'] == "__ALL__":
+            for folder_entry in get_folder_fist(account):
+                folder_name = folder_entry.decode().split(' "." ')
+                print("Saving folder: " + folder_name[1])
+                account['remote_folder'] = folder_name[1]
+                save_emails(account, options)
+        else:
+            save_emails(account, options)
 
 if __name__ == '__main__':
     main()

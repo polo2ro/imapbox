@@ -69,7 +69,13 @@ class MailboxClient:
     def saveEmail(self, data):
         for response_part in data:
             if isinstance(response_part, tuple):
-                msg = email.message_from_string(response_part[1].decode("utf-8"))
+                msg = ""
+                try:
+                    msg = email.message_from_string(response_part[1].decode("utf-8"))
+                except:
+                    print("couldn't decode message with utf-8 - trying 'ISO-8859-1'")
+                    msg = email.message_from_string(response_part[1].decode("ISO-8859-1"))
+
                 directory = self.getEmailFolder(msg, data[0][1])
 
                 if os.path.exists(directory):
@@ -96,3 +102,18 @@ class MailboxClient:
                         print(e)
 
         return True
+
+
+def save_emails(account, options):
+    mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
+    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
+    mailbox.cleanup()
+    print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
+
+
+def get_folder_fist(account):
+    mailbox = imaplib.IMAP4_SSL(account['host'], account['port'])
+    mailbox.login(account['username'], account['password'])
+    folder_list = mailbox.list()[1]
+    mailbox.logout()
+    return folder_list

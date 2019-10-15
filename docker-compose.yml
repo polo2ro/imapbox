@@ -1,0 +1,13 @@
+version: '3'
+services:
+
+  imapbox:
+    image: mauricemueller/imapbox
+    container_name: imapbox
+    volumes:
+      - imapbox_data:/var/imapbox
+      # change the path to the config
+      - ./test/config.cfg:/etc/imapbox/config.cfg
+
+volumes:
+  imapbox_data:
