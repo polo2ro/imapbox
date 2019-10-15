@@ -85,7 +85,7 @@ Parameter       | Description
 host            | IMAP server hostname
 username        | Login id for the IMAP server.
 password        | The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set `chmod 700` on your `~/.config/mailbox/config.cfg` file.
-remote_folder   | (optional) IMAP folder name (multiple folder name is not supported for the moment). Default value is `INBOX`.
+remote_folder   | (optional) IMAP folder name (multiple folder name is not supported for the moment). Default value is `INBOX`. You can use `__ALL__` to fetch all folders.
 port            | (optional) Default value is `993`.
 
 
@@ -146,6 +146,26 @@ Example with a filter on UTC date:
 ```bash
 find . -name "*.json" | xargs cat | jq 'select(.Utc > "20150221T130000Z")'
 ```
+
+## Docker compose
+
+```
+version: '3'
+services:
+
+  imapbox:
+    image: mauricemueller/imapbox
+    container_name: imapbox
+    volumes:
+      - imapbox_data:/var/imapbox
+      # change the path to the config
+      - ./test/config.cfg:/etc/imapbox/config.cfg
+
+volumes:
+  imapbox_data:
+```
+
+`docker-compose run --rm imapbox`
 
 
 ## Similar projects
