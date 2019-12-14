@@ -87,7 +87,7 @@ def main():
 
         if account['remote_folder'] == "__ALL__":
             for folder_entry in get_folder_fist(account):
-                folder_name = folder_entry.decode().split(' "." ')
+                folder_name = folder_entry.decode().replace("/",".").split(' "." ')
                 print("Saving folder: " + folder_name[1])
                 account['remote_folder'] = folder_name[1]
                 save_emails(account, options)
