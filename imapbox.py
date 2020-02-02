@@ -6,6 +6,16 @@ import argparse
 from six.moves import configparser
 import os
 
+try:
+    from progress.bar import ShadyBar
+    progress_module_installed = True
+except ModuleNotFoundError:
+    print('''You don't have the progress module installed. Progress bar will not be shown.
+             It can be installed via pip: "pip install progress" (recommended),
+             or you can clone the folder "progress" from the progress repository (https://github.com/verigak/progress/) in to this directory.
+             ''')
+    progress_module_installed = False
+
 
 def load_configuration(args):
     config = configparser.ConfigParser(allow_no_value=True)
@@ -15,7 +25,8 @@ def load_configuration(args):
         'days': None,
         'local_folder': '.',
         'wkhtmltopdf': None,
-        'accounts': []
+        'accounts': [],
+        'system_has_progress_module': None
     }
 
     if (config.has_section('imapbox')):
@@ -66,6 +77,8 @@ def load_configuration(args):
 
     if (args.wkhtmltopdf):
         options['wkhtmltopdf'] = args.wkhtmltopdf
+    
+    options['system_has_progress_module'] = progress_module_installed
 
     return options
 

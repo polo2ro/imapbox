@@ -24,6 +24,7 @@ This script requires Python 3 for `master` branch or python 2 on the `python2` b
 * [six](https://pypi.org/project/six)
 * [chardet](https://pypi.python.org/pypi/chardet) – required for character encoding detection.
 * [pdfkit](https://pypi.python.org/pypi/pdfkit) – optionally required for archiving emails to PDF.
+* [progress](https://pypi.org/project/progress/) - optionally required for showing a progress bar.
 
 ## Use cases
 
