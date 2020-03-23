@@ -91,10 +91,12 @@ def main():
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
 
         if account['remote_folder'] == "__ALL__":
+            basedir = options['local_folder']
             for folder_entry in get_folder_fist(account):
                 folder_name = folder_entry.decode().replace("/",".").split(' "." ')
                 print("Saving folder: " + folder_name[1])
                 account['remote_folder'] = folder_name[1]
+                options['local_folder'] = os.path.join(basedir, account['remote_folder'])
                 save_emails(account, options)
         else:
             save_emails(account, options)
