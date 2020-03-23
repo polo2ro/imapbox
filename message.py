@@ -7,6 +7,7 @@ from email.utils import parseaddr
 from email.header import decode_header
 import re
 import os
+import sys
 import json
 import io
 import mimetypes
@@ -111,7 +112,10 @@ class Message:
                 # address must match adress regex
                 if not email_address_re.match(addr.decode("utf-8")):
                     addr=''
-            addrs[i]=(self.getmailheader(name), addr.decode("utf-8"))
+            if not isinstance(addr, str):
+                # Python 2 imaplib returns a bytearray,
+                # Python 3 imaplib returns a str.
+                addrs[i]=(self.getmailheader(name), addr.decode("utf-8"))
         return addrs
 
     def getSubject(self):
@@ -184,7 +188,17 @@ class Message:
 
     def getPartCharset(self, part):
         if part.get_content_charset() is None:
-            return chardet.detect(str(part))['encoding']
+            # Python 2 chardet expects a string,
+            # Python 3 chardet expects a bytearray.
+            if sys.version_info[0] < 3:
+                return chardet.detect(part.as_string())['encoding']
+            else:
+                try:
+                    return chardet.detect(part.as_bytes())['encoding']
+                except UnicodeEncodeError:
+                        string = part.as_string()
+                        array = bytearray(string, 'utf-8')
+                        return chardet.detect(array)['encoding']
         return part.get_content_charset()
 
 

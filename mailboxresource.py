@@ -78,11 +78,17 @@ class MailboxClient:
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = ""
-                try:
-                    msg = email.message_from_string(response_part[1].decode("utf-8"))
-                except:
-                    print("couldn't decode message with utf-8 - trying 'ISO-8859-1'")
-                    msg = email.message_from_string(response_part[1].decode("ISO-8859-1"))
+                # Handle Python version differences:
+                # Python 2 imaplib returns bytearray, Python 3 imaplib
+                # returns str.
+                if isinstance(response_part[1], str):
+                    msg = email.message_from_string(response_part[1])
+                else:
+                    try:
+                        msg = email.message_from_string(response_part[1].decode("utf-8"))
+                    except:
+                        print("couldn't decode message with utf-8 - trying 'ISO-8859-1'")
+                        msg = email.message_from_string(response_part[1].decode("ISO-8859-1"))
 
                 directory = self.getEmailFolder(msg, data[0][1])
 
