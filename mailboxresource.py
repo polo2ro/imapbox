@@ -18,7 +18,15 @@ class MailboxClient:
     def __init__(self, host, port, username, password, remote_folder):
         self.mailbox = imaplib.IMAP4_SSL(host, port)
         self.mailbox.login(username, password)
-        self.mailbox.select(remote_folder, readonly=True)
+        typ, data = self.mailbox.select(remote_folder, readonly=True)
+        if typ != 'OK':
+            # Handle case where Exchange/Outlook uses '.' path separator when
+            # reporting subfolders. Adjust to use '/' on remote.
+            adjust_remote_folder = re.sub('\.', '/', remote_folder)
+            typ, data = self.mailbox.select(adjust_remote_folder, readonly=True)
+            if typ != 'OK':
+                print("MailboxClient: Could not select remote folder '%s'" % remote_folder)
+
 
     def copy_emails(self, days, local_folder, wkhtmltopdf):
 
