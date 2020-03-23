@@ -5,6 +5,7 @@ from mailboxresource import save_emails, get_folder_fist
 import argparse
 from six.moves import configparser
 import os
+import getpass
 
 
 def load_configuration(args):
@@ -48,7 +49,11 @@ def load_configuration(args):
             account['port'] = config.get(section, 'port')
 
         account['username'] = config.get(section, 'username')
-        account['password'] = config.get(section, 'password')
+        if config.has_option(section, 'password'):
+            account['password'] = config.get(section, 'password')
+        else:
+            prompt=('Password for ' + account['username'] + ':' + account['host'] + ': ')
+            account['password'] = getpass.getpass(prompt=prompt)
 
         if config.has_option(section, 'remote_folder'):
             account['remote_folder'] = config.get(section, 'remote_folder')
