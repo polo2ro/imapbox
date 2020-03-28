@@ -130,6 +130,9 @@ class Message:
         return self.from_
 
     def normalizeDate(self, datestr):
+        if not datestr:
+            print("No date for '%s'. Using Unix Epoch instead." % self.directory)
+            datestr="Thu, 1 Jan 1970 00:00:00 +0000"
         t = email.utils.parsedate_tz(datestr)
         timeval = time.mktime(t[:-1])
         date = email.utils.formatdate(timeval, True)
