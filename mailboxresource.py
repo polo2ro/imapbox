@@ -10,8 +10,6 @@ import hashlib
 from message import Message
 import datetime
 
-
-
 class MailboxClient:
     """Operations on a mailbox"""
 
@@ -28,7 +26,7 @@ class MailboxClient:
                 print("MailboxClient: Could not select remote folder '%s'" % remote_folder)
 
 
-    def copy_emails(self, days, local_folder, wkhtmltopdf):
+    def copy_emails(self, days, local_folder, wkhtmltopdf, has_progress):
 
         n_saved = 0
         n_exists = 0
@@ -42,13 +40,19 @@ class MailboxClient:
             criterion = '(SENTSINCE {date})'.format(date=date)
 
         typ, data = self.mailbox.search(None, criterion)
+
+        if has_progress:
+            from progress.bar import ShadyBar
+            progress_bar = ShadyBar('Downloading messages', max=len(data[0].split()), suffix='%(percent).1f%% | %(remaining).0f Emails left | Estimated %(eta)d seconds remaining')
+        
         for num in data[0].split():
             typ, data = self.mailbox.fetch(num, '(RFC822)')
             if self.saveEmail(data):
                 n_saved += 1
             else:
                 n_exists += 1
-
+            if has_progress:
+                progress_bar.next()
         return (n_saved, n_exists)
 
 
@@ -109,7 +113,7 @@ class MailboxClient:
                 except Exception as e:
                     # ex: Unsupported charset on decode
                     print(directory)
-                    if hasattr(e, 'strerror'):
+                    if hasattr(e, 'strerror') and e.strerror is not None:
                         print("MailboxClient.saveEmail() failed:", e.strerror)
                     else:
                         print("MailboxClient.saveEmail() failed")
@@ -120,7 +124,7 @@ class MailboxClient:
 
 def save_emails(account, options):
     mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
+    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'], options['system_has_progress_module'])
     mailbox.cleanup()
     print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
 
