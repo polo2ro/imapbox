@@ -10,7 +10,7 @@ import getpass
 
 def load_configuration(args):
     config = configparser.ConfigParser(allow_no_value=True)
-    config.read(['/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')])
+    config.read(['./config.cfg', '/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')])
 
     options = {
         'days': None,
