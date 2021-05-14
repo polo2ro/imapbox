@@ -1,5 +1,5 @@
 __pycache__/
 *.py[cod]
 .tags
-test/config.cfg
+config.cfg
 .idea
