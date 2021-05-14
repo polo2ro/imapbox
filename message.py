@@ -13,7 +13,7 @@ import io
 import mimetypes
 import chardet
 import gzip
-import cgi
+import html
 import time
 import pkgutil
 
@@ -257,7 +257,7 @@ class Message:
 <body>
 %s
 </body>
-</html>""" % (cgi.escape(fromname), cgi.escape(subject), utf8_content)
+</html>""" % (html.escape(fromname), html.escape(subject), utf8_content)
 
         with open(os.path.join(self.directory, 'message.html'), 'wb') as fp:
             fp.write(bytearray(utf8_content, 'utf-8'))
