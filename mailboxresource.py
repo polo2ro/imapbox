@@ -15,8 +15,11 @@ import datetime
 class MailboxClient:
     """Operations on a mailbox"""
 
-    def __init__(self, host, port, username, password, remote_folder):
-        self.mailbox = imaplib.IMAP4_SSL(host, port)
+    def __init__(self, host, port, username, password, remote_folder, ssl):
+        if not ssl:
+            self.mailbox = imaplib.IMAP4(host, port)
+        else:
+            self.mailbox = imaplib.IMAP4_SSL(host, port)
         self.mailbox.login(username, password)
         typ, data = self.mailbox.select(remote_folder, readonly=True)
         if typ != 'OK':
@@ -119,14 +122,17 @@ class MailboxClient:
 
 
 def save_emails(account, options):
-    mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
+    mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'], account['ssl'])
     stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
     mailbox.cleanup()
     print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
 
 
 def get_folder_fist(account):
-    mailbox = imaplib.IMAP4_SSL(account['host'], account['port'])
+    if not account['ssl']:
+        mailbox = imaplib.IMAP4(account['host'], account['port'])
+    else:
+        mailbox = imaplib.IMAP4_SSL(account['host'], account['port'])
     mailbox.login(account['username'], account['password'])
     folder_list = mailbox.list()[1]
     mailbox.logout()

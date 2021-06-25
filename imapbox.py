@@ -41,7 +41,8 @@ def load_configuration(args):
         account = {
             'name': section,
             'remote_folder': 'INBOX',
-            'port': 993
+            'port': 993,
+            'ssl': False
         }
 
         account['host'] = config.get(section, 'host')
@@ -54,6 +55,10 @@ def load_configuration(args):
         else:
             prompt=('Password for ' + account['username'] + ':' + account['host'] + ': ')
             account['password'] = getpass.getpass(prompt=prompt)
+
+        if config.has_option(section, 'ssl'):
+            if config.get(section, 'ssl').lower() == "true":
+                account['ssl'] = True
 
         if config.has_option(section, 'remote_folder'):
             account['remote_folder'] = config.get(section, 'remote_folder')
