@@ -33,10 +33,9 @@ This script requires Python 3 for `master` branch or python 2 on the `python2` b
 * Archiving an IMAP account because of mailbox size restrictions, or to restrain the used disk space on the IMAP server.
 * Archiving emails to PDF format.
 
-
 ## Config file
 
-Use `~/.config/imapbox/config.cfg` or `/etc/imapbox/config.cfg`
+Use `./config.cfg` `~/.config/imapbox/config.cfg` or `/etc/imapbox/config.cfg`
 
 Example:
 ```ini
@@ -58,10 +57,7 @@ remote_folder=INBOX
 port=993
 ```
 
-
-
-The imapbox section
--------------------
+### The imapbox section
 
 Possibles parameters for the imapbox section:
 
@@ -71,10 +67,7 @@ local_folder    | The full path to the folder where the emails should be stored.
 days            | Number of days back to get in the IMAP account, this should be set greater and equals to the cronjob frequency. If this parameter is not set, imapbox will get all the emails from the IMAP account. This can be overwritten with the shell argument `-d`.
 wkhtmltopdf     | (optional) The location of the `wkhtmltopdf` binary. By default `pdfkit` will attempt to locate this using `which` (on UNIX type systems) or `where` (on Windows). This can be overwritten with the shell argument `-w`.
 
-
-
-Other sections
---------------
+### Other sections
 
 You can have has many configured account as you want, one per section. Sections names may contains the account name.
 
@@ -87,8 +80,6 @@ username        | Login id for the IMAP server.
 password        | (optional) The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set `chmod 700` on your `~/.config/mailbox/config.cfg` file. The user will prompted for a password if this parameter is missing.
 remote_folder   | (optional) IMAP folder name (multiple folder name is not supported for the moment). Default value is `INBOX`. You can use `__ALL__` to fetch all folders.
 port            | (optional) Default value is `993`.
-
-
 
 ## Metadata file
 
@@ -105,18 +96,19 @@ Utc             | Message date converted in UTC, in the `ISO 8601` format. This 
 WithHtml        | Boolean, if the `message.html` file exists or not
 WithText        | Boolean, if the `message.txt` file exists or not
 
-
 ## Elasticsearch
 
 The `metadata.json` file contain the necessary informations for a search engine like [Elasticsearch](http://www.elasticsearch.com/).
 Populate an Elasticsearch index with the emails metadata can be done with a simple script.
 
 Create an index:
+
 ```bash
 curl -XPUT 'localhost:9200/imapbox?pretty'
 ```
 
 Add all emails to index:
+
 ```bash
 #!/bin/bash
 cd emails/
@@ -129,7 +121,6 @@ A front-end can be used to search in email archives:
 
 * [Calaca](https://github.com/polo2ro/Calaca) is a beautiful, easy to use, search UI for Elasticsearch.
 * [Facetview](https://github.com/okfn/facetview)
-
 
 ## Search in emails without indexation process
 
@@ -167,11 +158,9 @@ volumes:
 
 `docker-compose run --rm imapbox`
 
-
 ## Similar projects
 
 [NoPriv](https://github.com/RaymiiOrg/NoPriv) is a python script to backup any IMAP capable email account to a browsable HTML archive and a Maildir folder.
-
 
 ## License
 
