@@ -62,7 +62,7 @@ class MailboxClient:
 
     def getEmailFolder(self, msg, data):
         if msg['Message-Id']:
-            foldername = re.sub('[^a-zA-Z0-9_\-\.()\s]+', '', msg['Message-Id'])
+            foldername = re.sub('[^a-zA-Z0-9_\-\.() ]+', '', msg['Message-Id'])
         else:
             foldername = hashlib.sha224(data).hexdigest()
 
