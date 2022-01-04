@@ -94,16 +94,18 @@ def main():
     for account in options['accounts']:
 
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
+        basedir = options['local_folder']
 
         if account['remote_folder'] == "__ALL__":
-            basedir = options['local_folder']
+            folders = []
             for folder_entry in get_folder_fist(account):
-                folder_name = folder_entry.decode().replace("/",".").split(' "." ')
-                print("Saving folder: " + folder_name[1])
-                account['remote_folder'] = folder_name[1]
-                options['local_folder'] = os.path.join(basedir, account['remote_folder'])
-                save_emails(account, options)
+                folders.append(folder_entry.decode().replace("/",".").split(' "." ')[1])
         else:
+            folders = str.split(account['remote_folder'], ',')
+        for folder_entry in folders:
+            print("Saving folder: " + folder_entry) 
+            account['remote_folder'] = folder_entry
+            options['local_folder'] = os.path.join(basedir, folder_entry.replace('"', ''))
             save_emails(account, options)
 
 if __name__ == '__main__':
