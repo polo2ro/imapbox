@@ -160,8 +160,12 @@ volumes:
 
 `docker-compose run --rm imapbox`
 
-## Build own docker image
-`docker build -t imapbox .`
+## Build own docker image and push to dockerhub
+1. `docker login`
+1. `docker-compose build`
+1. `docker tag imapbox:latest [USERNAME]/imapbox:latest`
+1. `docker push [USERNAME]/imapbox:latest`
+
 
 ## Similar projects
 

@@ -2,12 +2,12 @@ version: '3'
 services:
 
   imapbox:
-    #image: mauricemueller/imapbox
+    image: mauricemueller/imapbox
       # enable this if you want to build your own docker image
-    build:
-      context: ./
-      dockerfile: Dockerfile 
-    image: imapbox-custom
+      #build:
+      #  context: ./
+      #  dockerfile: Dockerfile 
+    image: imapbox:latest
     container_name: imapbox
     volumes:
       # change the path './tmp/backup' to your back up folder
