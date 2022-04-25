@@ -3,11 +3,15 @@ services:
 
   imapbox:
     image: mauricemueller/imapbox
+      # enable this if you want to build your own docker image
+      #build:
+      #  context: ./
+      #  dockerfile: Dockerfile 
+    image: imapbox:latest
     container_name: imapbox
     volumes:
-      - imapbox_data:/var/imapbox
-      # change the path to the config
-      - ./test/config.cfg:/etc/imapbox/config.cfg
+      # change the path './tmp/backup' to your back up folder
+      - ./tmp/backup/:/var/imapbox/
+      # change the path './tmp/config.cfg' to the config
+      - ./tmp/config.cfg:/etc/imapbox/config.cfg
 
-volumes:
-  imapbox_data:

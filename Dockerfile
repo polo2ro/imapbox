@@ -1,10 +1,10 @@
-FROM python:3.7-alpine
+FROM python:slim-buster
 
 # Install dependencies
-RUN pip install six
-RUN pip install chardet
-RUN pip install pdfkit
-RUN apk add --update wkhtmltopdf
+RUN pip install --no-cache-dir six
+RUN pip install --no-cache-dir chardet
+RUN pip install --no-cache-dir pdfkit
+RUN apt-get update && apt-get install -y wkhtmltopdf
 
 # Make the data and config directory a volume
 VOLUME ["/etc/imapbox/"]

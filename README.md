@@ -160,6 +160,13 @@ volumes:
 
 `docker-compose run --rm imapbox`
 
+## Build own docker image and push to dockerhub
+1. `docker login`
+1. `docker-compose build`
+1. `docker tag imapbox:latest [USERNAME]/imapbox:latest`
+1. `docker push [USERNAME]/imapbox:latest`
+
+
 ## Similar projects
 
 [NoPriv](https://github.com/RaymiiOrg/NoPriv) is a python script to backup any IMAP capable email account to a browsable HTML archive and a Maildir folder.
