@@ -100,6 +100,10 @@ def main():
             folders = []
             for folder_entry in get_folder_fist(account):
                 folders.append(folder_entry.decode().replace("/",".").split(' "." ')[1])
+            # Remove Gmail parent folder from array otherwise the script fails:
+            if '"[Gmail]"' in folders: folders.remove('"[Gmail]"')
+            # Remove Gmail "All Mail" folder which just duplicates emails:
+            if '"[Gmail].All Mail"' in folders: folders.remove('"[Gmail].All Mail"')
         else:
             folders = str.split(account['remote_folder'], ',')
         for folder_entry in folders:
