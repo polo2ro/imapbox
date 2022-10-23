@@ -7,6 +7,7 @@ from email.utils import parseaddr
 from email.header import decode_header
 import re
 import os
+import posixpath
 import sys
 import json
 import io
@@ -240,7 +241,7 @@ class Message:
         utf8_content = self.getHtmlContent(parts)
         for img in embed:
             pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]))
-            path = os.path.join('attachments', img[1])
+            path = posixpath.join('attachments', img[1])
             utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
 
 
