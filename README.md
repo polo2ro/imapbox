@@ -20,7 +20,7 @@ copies of the same message spread knew several account will be archived once usi
 
 ## Install
 
-This script requires Python 3 for `master` branch or python 2 on the `python2` branch and the following libraries:
+This script requires Python 3.4 for `master` branch or python 2 on the `python2` branch and the following libraries:
 * [six](https://pypi.org/project/six)
 * [chardet](https://pypi.python.org/pypi/chardet) – required for character encoding detection.
 * [pdfkit](https://pypi.python.org/pypi/pdfkit) – optionally required for archiving emails to PDF.
