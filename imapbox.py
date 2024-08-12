@@ -16,6 +16,7 @@ def load_configuration(args):
         'days': None,
         'local_folder': '.',
         'wkhtmltopdf': None,
+        'specific_folders': False,
         'accounts': []
     }
 
@@ -28,6 +29,9 @@ def load_configuration(args):
 
         if config.has_option('imapbox', 'wkhtmltopdf'):
             options['wkhtmltopdf'] = os.path.expanduser(config.get('imapbox', 'wkhtmltopdf'))
+
+        if config.has_option('imapbox', 'specific_folders'):
+            options['specific_folders'] = config.getboolean('imapbox', 'specific_folders')
 
 
     for section in config.sections():
@@ -77,6 +81,9 @@ def load_configuration(args):
     if (args.wkhtmltopdf):
         options['wkhtmltopdf'] = args.wkhtmltopdf
 
+    if (args.specific_folders):
+        options['specific_folders'] = True
+
     return options
 
 
@@ -88,13 +95,20 @@ def main():
     argparser.add_argument('-d', dest='days', help="Number of days back to get in the IMAP account", type=int)
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
+    argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders")
     args = argparser.parse_args()
     options = load_configuration(args)
+    rootDir = options['local_folder']
 
     for account in options['accounts']:
 
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
         basedir = options['local_folder']
+
+        if options['specific_folders']:
+            basedir = os.path.join(rootDir, account['name'])
+        else:
+            basedir = rootDir
 
         if account['remote_folder'] == "__ALL__":
             folders = []
@@ -111,6 +125,7 @@ def main():
             account['remote_folder'] = folder_entry
             options['local_folder'] = os.path.join(basedir, folder_entry.replace('"', ''))
             save_emails(account, options)
+
 
 if __name__ == '__main__':
     main()
