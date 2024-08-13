@@ -95,7 +95,7 @@ def main():
     argparser.add_argument('-d', dest='days', help="Number of days back to get in the IMAP account", type=int)
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
-    argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders")
+    argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders", action='store_true')
     args = argparser.parse_args()
     options = load_configuration(args)
     rootDir = options['local_folder']
