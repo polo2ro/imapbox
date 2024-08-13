@@ -10,7 +10,11 @@ import getpass
 
 def load_configuration(args):
     config = configparser.ConfigParser(allow_no_value=True)
-    config.read(['./config.cfg', '/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')])
+    if (args.specific_config):
+        locations = args.specific_config
+    else:
+        locations = ['./config.cfg', '/etc/imapbox/config.cfg', os.path.expanduser('~/.config/imapbox/config.cfg')]
+    config.read(locations)
 
     options = {
         'days': None,
@@ -96,6 +100,7 @@ def main():
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
     argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders")
+    argparser.add_argument('-c', dest='specific_config', help="Path to a config file to use")
     args = argparser.parse_args()
     options = load_configuration(args)
     rootDir = options['local_folder']
