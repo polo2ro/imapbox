@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-from mailboxresource import save_emails, get_folder_fist
+from mailboxresource import save_emails, get_folder_fist, get_account
 import argparse
 from six.moves import configparser
 import os
@@ -33,44 +33,62 @@ def load_configuration(args):
         if config.has_option('imapbox', 'specific_folders'):
             options['specific_folders'] = config.getboolean('imapbox', 'specific_folders')
 
-
-    for section in config.sections():
-
-        if ('imapbox' == section):
-            continue
-
-        if (args.specific_account and (args.specific_account != section)):
-            continue
-
-        account = {
-            'name': section,
-            'remote_folder': 'INBOX',
-            'port': 993,
-            'ssl': False
-        }
-
-        account['host'] = config.get(section, 'host')
-        if config.has_option(section, 'port'):
-            account['port'] = config.get(section, 'port')
-
-        account['username'] = config.get(section, 'username')
-        if config.has_option(section, 'password'):
-            account['password'] = config.get(section, 'password')
-        else:
-            prompt=('Password for ' + account['username'] + ':' + account['host'] + ': ')
-            account['password'] = getpass.getpass(prompt=prompt)
-
-        if config.has_option(section, 'ssl'):
-            if config.get(section, 'ssl').lower() == "true":
-                account['ssl'] = True
-
-        if config.has_option(section, 'remote_folder'):
-            account['remote_folder'] = config.get(section, 'remote_folder')
-
+    if args.specific_dsn:
+        account = get_account(args.specific_dsn)
         if (None == account['host'] or None == account['username'] or None == account['password']):
-            continue
+            print('Invalid DSN: ' + args.specific_dsn)
+        else:
+            options['accounts'].append(account)
 
-        options['accounts'].append(account)
+    else:
+        for section in config.sections():
+
+            if ('imapbox' == section):
+                continue
+
+            if (args.specific_account and (args.specific_account != section)):
+                continue
+
+            account = {
+                'name': section,
+                'remote_folder': 'INBOX',
+                'username': None,
+                'password': None,
+                'host': None,
+                'port': 993,
+                'ssl': False
+            }
+
+            if config.has_option(section, 'dsn'):
+                account = get_account(config.get(section, 'dsn'), account['name'])
+
+            if config.has_option(section, 'host'):
+                account['host'] = config.get(section, 'host')
+
+            if config.has_option(section, 'port'):
+                account['port'] = config.get(section, 'port')
+
+            if config.has_option(section, 'username'):
+                account['username'] = config.get(section, 'username')
+
+            if config.has_option(section, 'password'):
+                account['password'] = config.get(section, 'password')
+            elif not account['password']:
+                prompt=('Password for ' + account['username'] + ':' + account['host'] + ': ')
+                account['password'] = getpass.getpass(prompt=prompt)
+
+            if config.has_option(section, 'ssl'):
+                if config.get(section, 'ssl').lower() == "true":
+                    account['ssl'] = True
+
+            if config.has_option(section, 'remote_folder'):
+                account['remote_folder'] = config.get(section, 'remote_folder')
+
+            if (None == account['host'] or None == account['username'] or None == account['password']):
+                print('Invalid account: ' + section)
+                continue
+
+            options['accounts'].append(account)
 
     if (args.local_folder):
         options['local_folder'] = args.local_folder
@@ -96,6 +114,7 @@ def main():
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
     argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders")
+    argparser.add_argument('-n', dest='specific_dsn', help="Use a specific DSN as account")
     args = argparser.parse_args()
     options = load_configuration(args)
     rootDir = options['local_folder']

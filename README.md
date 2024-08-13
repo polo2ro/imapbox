@@ -84,6 +84,7 @@ password        | (optional) The password will be saved in cleartext, for securi
 remote_folder   | (optional) IMAP folder name (multiple folder name is not supported for the moment). Default value is `INBOX`. You can use `__ALL__` to fetch all folders.
 port            | (optional) Default value is `993`.
 ssl            | (optional) Default value is `False`. Set to `True` to enable SSL
+dsn             | (optinoal) Use a specific DSN to set account paramaters. All other parameters in the account section will overwrite these. This can be used with the shell argument `-n <dsn>`.
 
 ## Metadata file
 
