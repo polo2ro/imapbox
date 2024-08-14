@@ -21,6 +21,7 @@ def load_configuration(args):
         'local_folder': '.',
         'wkhtmltopdf': None,
         'specific_folders': False,
+        'test_only': False,
         'accounts': []
     }
 
@@ -36,6 +37,9 @@ def load_configuration(args):
 
         if config.has_option('imapbox', 'specific_folders'):
             options['specific_folders'] = config.getboolean('imapbox', 'specific_folders')
+
+        if config.has_option('imapbox', 'test_only'):
+            options['test_only'] = config.getboolean('imapbox', 'test_only')
 
 
     for section in config.sections():
@@ -88,6 +92,9 @@ def load_configuration(args):
     if (args.specific_folders):
         options['specific_folders'] = True
 
+    if (args.test_only):
+        options['test_only'] = True
+
     return options
 
 
@@ -100,6 +107,7 @@ def main():
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
     argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders")
+    argparser.add_argument('-t', dest='test_only', help="Only a connection and folder retrival test will be performed", action='store_true')
     argparser.add_argument('-c', dest='specific_config', help="Path to a config file to use")
     args = argparser.parse_args()
     options = load_configuration(args)
@@ -108,7 +116,14 @@ def main():
     for account in options['accounts']:
 
         print('{}/{} (on {})'.format(account['name'], account['remote_folder'], account['host']))
-        basedir = options['local_folder']
+
+        if options['test_only']:
+            try:
+                get_folder_fist(account)
+                print(" - SUCCESS: Login and folder retrival")
+            except:
+                print("\x1b[31;20m" + " - FAILED: Login and folder retrival" + "\x1b[0m")
+            continue
 
         if options['specific_folders']:
             basedir = os.path.join(rootDir, account['name'])
