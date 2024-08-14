@@ -69,6 +69,7 @@ local_folder    | The full path to the folder where the emails should be stored.
 days            | Number of days back to get in the IMAP account, this should be set greater and equals to the cronjob frequency. If this parameter is not set, imapbox will get all the emails from the IMAP account. This can be overwritten with the shell argument `-d`.
 wkhtmltopdf     | (optional) The location of the `wkhtmltopdf` binary. By default `pdfkit` will attempt to locate this using `which` (on UNIX type systems) or `where` (on Windows). This can be overwritten with the shell argument `-w`.
 specific_folders| (optional) Backup into specific account subfolders. By default all accounts will be combined into one account folder. This can be overwritten with the shell argument `-f`.
+test_only       | (optional) Only a connection and folder retrival test will be performed. This can be overwritten with the shell argument `-t`.
 
 ### Other sections
 
