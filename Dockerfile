@@ -12,4 +12,5 @@ VOLUME ["/var/imapbox/"]
 
 # Copy source files and set entry point
 COPY *.py /opt/bin/
+COPY VERSION /opt/bin/
 ENTRYPOINT ["python", "/opt/bin/imapbox.py"]
