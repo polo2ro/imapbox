@@ -84,7 +84,8 @@ username        | Login id for the IMAP server.
 password        | (optional) The password will be saved in cleartext, for security reasons, you have to run the imapbox script in userspace and set `chmod 700` on your `~/.config/mailbox/config.cfg` file. The user will prompted for a password if this parameter is missing.
 remote_folder   | (optional) IMAP folder name (multiple folder name is not supported for the moment). Default value is `INBOX`. You can use `__ALL__` to fetch all folders.
 port            | (optional) Default value is `993`.
-ssl            | (optional) Default value is `False`. Set to `True` to enable SSL
+ssl             | (optional) Default value is `False`. Set to `True` to enable SSL
+dsn             | (optional) Use a specific DSN to set account paramaters. All other parameters in the account section will overwrite these. This can be used with the shell argument `-n <dsn>`.
 
 ## Metadata file
 

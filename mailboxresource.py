@@ -9,7 +9,7 @@ import os
 import hashlib
 from message import Message
 import datetime
-
+import urllib
 
 
 class MailboxClient:
@@ -138,3 +138,91 @@ def get_folder_fist(account):
     folder_list = mailbox.list()[1]
     mailbox.logout()
     return folder_list
+
+# DSN:
+# defaults to INBOX, path represents a single folder:
+#  imap://username:password@imap.gmail.com:993/
+#  imap://username:password@imap.gmail.com:993/INBOX
+#
+# get all folders
+#  imap://username:password@imap.gmail.com:993/__ALL__
+#
+# singe folder with ssl, both are the same:
+#  imaps://username:password@imap.gmail.com:993/INBOX
+#  imap://username:password@imap.gmail.com:993/INBOX?ssl=true
+#
+# folder as provided as path or as query param "remote_folder" with comma separated list
+#  imap://username:password@imap.gmail.com:993/INBOX.Drafts
+#  imap://username:password@imap.gmail.com:993/?remote_folder=INBOX.Drafts
+#
+# combined list of folders with path and ?remote_folder
+#  imap://username:password@imap.gmail.com:993/INBOX.Drafts?remote_folder=INBOX.Sent
+#
+# with multiple remote_folder:
+#  imap://username:password@imap.gmail.com:993/?remote_folder=INBOX.Drafts
+#  imap://username:password@imap.gmail.com:993/?remote_folder=INBOX.Drafts,INBOX.Sent
+#
+# setting other parameters
+#  imap://username:password@imap.gmail.com:993/?name=Account1
+def get_account(dsn, name=None):
+    account = {
+        'name': 'account',
+        'host': None,
+        'port': 993,
+        'username': None,
+        'password': None,
+        'remote_folder': 'INBOX', # String (might contain a comma separated list of folders)
+        'ssl': False,
+    }
+
+    parsed_url = urllib.parse.urlparse(dsn)
+    
+    if parsed_url.scheme.lower() not in ['imap', 'imaps']:
+        raise ValueError('Scheme must be "imap" or "imaps"')
+    
+    account['ssl'] = parsed_url.scheme.lower() == 'imaps'
+    
+    if parsed_url.hostname:
+        account['host'] = parsed_url.hostname
+
+    if parsed_url.port:
+        account['port'] = parsed_url.port
+    if parsed_url.username:
+        account['username'] = urllib.parse.unquote(parsed_url.username)
+    if parsed_url.password:
+        account['password'] = urllib.parse.unquote(parsed_url.password)
+    
+    # prefill account name, if none was provided (by config.cfg) in case of calling it from commandline. can be overwritten by the query param 'name'
+    if name:
+        account['name'] = name
+        
+    else:
+        if (account['username']):
+            account['name'] = account['username']
+            
+        if (account['host']):
+            account['name'] += '@' + account['host']
+
+    if parsed_url.path != '':
+        account['remote_folder'] = parsed_url.path.lstrip('/').rstrip('/')
+
+    if parsed_url.query != '':
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+
+        # merge query params into account
+        for key, value in query_params.items():
+
+            if key == 'remote_folder':
+                if account['remote_folder'] is not None:
+                    account['remote_folder'] += ',' + value[0]
+                else:
+                    account['remote_folder'] = value[0]
+            
+            elif key == 'ssl':
+                account['ssl'] = value[0].lower() == 'true'
+            
+            # merge all others params, to be able to overwrite username, password, ... and future account options
+            else:
+                account[key] = value[0] if len(value) == 1 else value
+
+    return account
