@@ -109,6 +109,11 @@ def load_configuration(args):
     if (args.test_only):
         options['test_only'] = True
 
+    if (args.show_version):
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION'), 'r') as version_file:
+            print(version_file.read())
+        exit(0)
+    
     return options
 
 
@@ -120,12 +125,16 @@ def main():
     argparser.add_argument('-d', dest='days', help="Number of days back to get in the IMAP account", type=int)
     argparser.add_argument('-w', dest='wkhtmltopdf', help="The location of the wkhtmltopdf binary")
     argparser.add_argument('-a', dest='specific_account', help="Select a specific account to backup")
-    argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders")
+    argparser.add_argument('-f', dest='specific_folders', help="Backup into specific account subfolders", action='store_true')
     argparser.add_argument('-t', dest='test_only', help="Only a connection and folder retrival test will be performed", action='store_true')
     argparser.add_argument('-n', dest='specific_dsn', help="Use a specific DSN as account")
+    argparser.add_argument('-v', '--version', dest='show_version', help="Show the current version", action="store_true")
     args = argparser.parse_args()
     options = load_configuration(args)
     rootDir = options['local_folder']
+
+    if not options['accounts']:
+        argparser.print_help()
 
     for account in options['accounts']:
 
