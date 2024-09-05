@@ -25,7 +25,7 @@ class MailboxClient:
         if typ != 'OK':
             # Handle case where Exchange/Outlook uses '.' path separator when
             # reporting subfolders. Adjust to use '/' on remote.
-            adjust_remote_folder = re.sub('\.', '/', remote_folder)
+            adjust_remote_folder = re.sub(r'\.', '/', remote_folder)
             typ, data = self.mailbox.select(adjust_remote_folder, readonly=True)
             if typ != 'OK':
                 print("MailboxClient: Could not select remote folder '%s'" % remote_folder)
@@ -63,13 +63,13 @@ class MailboxClient:
     def getEmailFolder(self, msg, data):
         # 255is the max filename length on all systems
         if msg['Message-Id'] and len(msg['Message-Id']) < 255:
-            foldername = re.sub('[^a-zA-Z0-9_\-\.() ]+', '', msg['Message-Id'])
+            foldername = re.sub(r'[^a-zA-Z0-9_\-\.() ]+', '', msg['Message-Id'])
         else:
             foldername = hashlib.sha224(data).hexdigest()
 
         year = 'None'
         if msg['Date']:
-            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
+            match = re.search(r'\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
             if match:
                 year = match.group(1)
 
