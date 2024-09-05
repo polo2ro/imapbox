@@ -25,6 +25,12 @@ This script requires Python 3.4 for `master` branch or python 2 on the `python2`
 * [chardet](https://pypi.python.org/pypi/chardet) – required for character encoding detection.
 * [pdfkit](https://pypi.python.org/pypi/pdfkit) – optionally required for archiving emails to PDF.
 
+To install the required dependencies, run:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Use cases
 
 * I use the script to merge all my mail accounts in one searchable directory on my NAS server.

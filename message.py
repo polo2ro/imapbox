@@ -230,7 +230,7 @@ class Message:
                 charset = self.getPartCharset(part)
                 self.html_content += raw_content.decode(charset, "replace")
 
-            m = re.search('<body[^>]*>(.+)<\/body>', self.html_content, re.S | re.I)
+            m = re.search(r'<body[^>]*>(.+)<\/body>', self.html_content, re.S | re.I)
             if (m != None):
                 self.html_content = m.group(1)
 
@@ -240,7 +240,7 @@ class Message:
     def createHtmlFile(self, parts, embed):
         utf8_content = self.getHtmlContent(parts)
         for img in embed:
-            pattern = 'src=["\']cid:%s["\']' % (re.escape(img[0]))
+            pattern = r'src=["\']cid:%s["\']' % (re.escape(img[0]))
             path = posixpath.join('attachments', img[1])
             utf8_content = re.sub(pattern, 'src="%s"' % (path), utf8_content, 0, re.S | re.I)
 
