@@ -46,7 +46,7 @@ class MailboxClient:
 
         typ, data = self.mailbox.search(None, criterion)
         for num in data[0].split():
-            typ, data = self.mailbox.fetch(num, '(RFC822)')
+            typ, data = self.mailbox.fetch(num, '(BODY[])')
             if self.saveEmail(data):
                 n_saved += 1
             else:
