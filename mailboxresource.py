@@ -45,12 +45,13 @@ class MailboxClient:
             criterion = '(SENTSINCE {date})'.format(date=date)
 
         typ, data = self.mailbox.search(None, criterion)
-        for num in data[0].split():
-            typ, data = self.mailbox.fetch(num, '(BODY[])')
-            if self.saveEmail(data):
-                n_saved += 1
-            else:
-                n_exists += 1
+        if data and data[0]:
+            for num in data[0].split():
+                typ, data = self.mailbox.fetch(num, '(BODY.PEEK[])')
+                if self.saveEmail(data):
+                    n_saved += 1
+                else:
+                    n_exists += 1
 
         return (n_saved, n_exists)
 
@@ -126,7 +127,10 @@ def save_emails(account, options):
     mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'], account['ssl'])
     stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
     mailbox.cleanup()
-    print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
+    if stats[0] == 0 and stats[1] == 0:
+        print('Folder {} is empty'.format(account['remote_folder']))
+    else:
+        print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
 
 
 def get_folder_fist(account):
