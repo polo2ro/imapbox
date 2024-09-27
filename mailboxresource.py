@@ -11,25 +11,50 @@ from message import Message
 import datetime
 import urllib
 
+MAX_RETRIES = 5
 
 class MailboxClient:
     """Operations on a mailbox"""
 
     def __init__(self, host, port, username, password, remote_folder, ssl):
-        if not ssl:
-            self.mailbox = imaplib.IMAP4(host, port)
-        else:
-            self.mailbox = imaplib.IMAP4_SSL(host, port)
-        self.mailbox.login(username, password)
-        typ, data = self.mailbox.select(remote_folder, readonly=True)
-        if typ != 'OK':
-            # Handle case where Exchange/Outlook uses '.' path separator when
-            # reporting subfolders. Adjust to use '/' on remote.
-            adjust_remote_folder = re.sub(r'\.', '/', remote_folder)
-            typ, data = self.mailbox.select(adjust_remote_folder, readonly=True)
-            if typ != 'OK':
-                print("MailboxClient: Could not select remote folder '%s'" % remote_folder)
 
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.remote_folder = remote_folder
+        self.ssl = ssl
+
+        self.connect_to_imap()
+
+    def connect_to_imap(self):
+        retries = 0
+        while retries < MAX_RETRIES:
+            try:
+                if not self.ssl:  # Gespeicherten Wert verwenden
+                    self.mailbox = imaplib.IMAP4(self.host, self.port)  # Gespeicherte Werte verwenden
+                else:
+                    self.mailbox = imaplib.IMAP4_SSL(self.host, self.port)
+                self.mailbox.login(self.username, self.password)
+                typ, data = self.mailbox.select(self.remote_folder, readonly=True)
+                if typ != 'OK':
+                    # Handle case where Exchange/Outlook uses '.' path separator when
+                    # reporting subfolders. Adjust to use '/' on remote.
+                    adjust_remote_folder = re.sub(r'\.', '/', self.remote_folder)
+                    typ, data = self.mailbox.select(adjust_remote_folder, readonly=True)
+                    if typ != 'OK':
+                        print("MailboxClient: Could not select remote folder '%s'" % self.remote_folder)
+                break  # Erfolgreiche Verbindung und Ordnerauswahl
+            except ConnectionResetError as e:
+                print(f"Connection error: {e}. Will retry...")
+                retries += 1
+            except Exception as e:
+                print(f"MailboxClient: The following error happened: {e}. Will NOT retry...")
+                exit(1)
+
+        if retries == MAX_RETRIES:
+            print("Maximum retries reached. Exiting...")
+            exit(1)
 
     def copy_emails(self, days, local_folder, wkhtmltopdf):
 
@@ -46,15 +71,28 @@ class MailboxClient:
 
         typ, data = self.mailbox.search(None, criterion)
         if data and data[0]:
-            for num in data[0].split():
-                typ, data = self.mailbox.fetch(num, '(BODY.PEEK[])')
-                if self.saveEmail(data):
-                    n_saved += 1
-                else:
-                    n_exists += 1
-
+            print("Copying emails...")
+            total = len(data[0].split())
+            for idx, num in enumerate(data[0].split()):
+                fetch_retries = 0
+                while fetch_retries < MAX_RETRIES:
+                    try:
+                        typ, data = self.mailbox.fetch(num, '(BODY.PEEK[])')
+                        print('\r{0:.2f}%'.format(idx*100/total), end='')
+                        if self.saveEmail(data):
+                            n_saved += 1
+                        else:
+                            n_exists += 1
+                        break
+                    except ConnectionResetError as e:
+                        print(f"Connection error while fetching email: {e}. Retrying...")
+                        self.connect_to_imap()
+                        fetch_retries += 1
+                if fetch_retries == MAX_RETRIES:
+                    print("\nMaximum retries reached. Exiting...")
+                    exit(1)
+            print("\rDone.")
         return (n_saved, n_exists)
-
 
     def cleanup(self):
         self.mailbox.close()
@@ -92,7 +130,7 @@ class MailboxClient:
                     try:
                         msg = email.message_from_string(response_part[1].decode("utf-8"))
                     except:
-                        print("couldn't decode message with utf-8 - trying 'ISO-8859-1'")
+                        # print("couldn't decode message with utf-8 - trying 'ISO-8859-1'")
                         msg = email.message_from_string(response_part[1].decode("ISO-8859-1"))
 
                 directory = self.getEmailFolder(msg, data[0][1])
@@ -113,9 +151,10 @@ class MailboxClient:
 
                 except Exception as e:
                     # ex: Unsupported charset on decode
-                    print(directory)
                     if hasattr(e, 'strerror'):
-                        print("MailboxClient.saveEmail() failed:", e.strerror)
+                        if e.strerror is not None:
+                            print(directory)
+                            print("MailboxClient.saveEmail() failed:", e.strerror)
                     else:
                         print("MailboxClient.saveEmail() failed")
                         print(e)
