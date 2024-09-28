@@ -56,6 +56,29 @@ class MailboxClient:
             print("Maximum retries reached. Exiting...")
             exit(1)
 
+    def search_emails(self, criterion, batch_size=5000):
+        all_uids = []
+
+        typ, data = self.mailbox.uid('search', None, '1')
+        if typ == 'OK' and data[0]:
+            last_uid = int(data[0].split()[0]) - 1
+        else:
+            last_uid = 0
+
+        while True:
+            typ, data = self.mailbox.uid('search', None, criterion, f'UID {last_uid+1}:{last_uid + batch_size}')
+            if typ != 'OK':
+                raise imaplib.IMAP4.error(f"Error on searching emails: {data}")
+
+            batch_uids = data[0].split()
+            if not batch_uids:
+                break
+
+            all_uids.extend(batch_uids)
+            last_uid = int(batch_uids[-1])
+
+        return all_uids
+    
     def copy_emails(self, days, local_folder, wkhtmltopdf):
 
         n_saved = 0
@@ -69,11 +92,11 @@ class MailboxClient:
             date = (datetime.date.today() - datetime.timedelta(days)).strftime("%d-%b-%Y")
             criterion = '(SENTSINCE {date})'.format(date=date)
 
-        typ, data = self.mailbox.search(None, criterion)
-        if data and data[0]:
+        uids = self.search_emails(criterion)
+        if uids is not None and uids is not []:
             print("Copying emails...")
-            total = len(data[0].split())
-            for idx, num in enumerate(data[0].split()):
+            total = len(uids)
+            for idx, num in enumerate(uids):
                 fetch_retries = 0
                 while fetch_retries < MAX_RETRIES:
                     try:
@@ -88,6 +111,9 @@ class MailboxClient:
                         print(f"Connection error while fetching email: {e}. Retrying...")
                         self.connect_to_imap()
                         fetch_retries += 1
+                    except Exception as e:
+                        print(f"Error while fetching email: {e}. Skipping...")
+                        break
                 if fetch_retries == MAX_RETRIES:
                     print("\nMaximum retries reached. Exiting...")
                     exit(1)
