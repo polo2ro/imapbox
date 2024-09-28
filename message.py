@@ -7,6 +7,7 @@ from email.utils import parseaddr
 from email.header import decode_header
 import re
 import os
+import signal
 import posixpath
 import sys
 import json
@@ -24,6 +25,7 @@ from six.moves import html_parser
 has_pdfkit = pkgutil.find_loader('pdfkit') is not None
 if has_pdfkit: import pdfkit
 
+TIMEOUT_SECONDS = 120
 
 # email address REGEX matching the RFC 2822 spec
 # from perlfaq9
@@ -342,6 +344,18 @@ class Message:
             html_path = os.path.join(self.directory, 'message.html')
             pdf_path = os.path.join(self.directory, 'message.pdf')
             config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf)
-            pdfkit.from_file(html_path, pdf_path, configuration=config)
+
+            def timeout_handler(signum, frame):
+                raise TimeoutError("PDF creation timed out.")
+
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(TIMEOUT_SECONDS)
+
+            try:
+                pdfkit.from_file(html_path, pdf_path, configuration=config)
+            except TimeoutError:
+                print("Timeout while creating PDF. wkhtmltopdf was terminated.")
+            finally:
+                signal.alarm(0)
         else:
             print("Couldn't create PDF message, since \"pdfkit\" module isn't installed.")
