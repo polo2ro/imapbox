@@ -88,6 +88,12 @@ def load_configuration(args):
             if config.has_option(section, 'remote_folder'):
                 account['remote_folder'] = config.get(section, 'remote_folder')
 
+            if config.has_option(section, 'exclude_folders'):
+                exclude_folders_str = config.get(section, 'exclude_folders')
+                account['exclude_folders'] = [folder.strip() for folder in exclude_folders_str.split(',')]
+            else:
+                account['exclude_folders'] = []  # Leeres Array, falls keine exclude_folders angegeben sind
+
             if (None == account['host'] or None == account['username'] or None == account['password']):
                 print('Invalid account: ' + section)
                 continue
@@ -156,7 +162,9 @@ def main():
         if account['remote_folder'] == "__ALL__":
             folders = []
             for folder_entry in get_folder_fist(account):
-                folders.append(folder_entry.decode().replace("/",".").split(' "." ')[1])
+                folder_name = folder_entry.decode().replace("/", ".").split(' "." ')[1] 
+                if folder_name not in account['exclude_folders']:
+                    folders.append(folder_name)
             # Remove Gmail parent folder from array otherwise the script fails:
             if '"[Gmail]"' in folders: folders.remove('"[Gmail]"')
             # Remove Gmail "All Mail" folder which just duplicates emails:
