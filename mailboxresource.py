@@ -65,7 +65,11 @@ class MailboxClient:
             if typ != 'OK':
                 raise imaplib.IMAP4.error(f"Error on searching emails: {data}")
 
-            batch_uids = data[0].split()
+            if data and len(data) > 0 and data[0]: 
+                batch_uids = data[0].split()
+            else:
+                batch_uids = []
+
             if not batch_uids:
                 break
 
