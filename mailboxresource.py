@@ -58,15 +58,10 @@ class MailboxClient:
 
     def search_emails(self, criterion, batch_size=5000):
         all_uids = []
-
-        typ, data = self.mailbox.uid('search', None, '1')
-        if typ == 'OK' and data[0]:
-            last_uid = int(data[0].split()[0]) - 1
-        else:
-            last_uid = 0
+        last_num = 0
 
         while True:
-            typ, data = self.mailbox.uid('search', None, criterion, f'UID {last_uid+1}:{last_uid + batch_size}')
+            typ, data = self.mailbox.search(None, criterion, f'{last_num+1}:{last_num + batch_size}')
             if typ != 'OK':
                 raise imaplib.IMAP4.error(f"Error on searching emails: {data}")
 
@@ -75,7 +70,7 @@ class MailboxClient:
                 break
 
             all_uids.extend(batch_uids)
-            last_uid = int(batch_uids[-1])
+            last_num = last_num + batch_size
 
         return all_uids
     
@@ -111,6 +106,10 @@ class MailboxClient:
                         print(f"Connection error while fetching email: {e}. Retrying...")
                         self.connect_to_imap()
                         fetch_retries += 1
+                    except imaplib.IMAP4.abort as e:
+                        print(f"Abort error while fetching email: {e}. Skipping...")
+                        self.connect_to_imap()
+                        break
                     except Exception as e:
                         print(f"Error while fetching email: {e}. Skipping...")
                         break
